@@ -279,7 +279,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <!-- Total -->
                 <div
-                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
+                    class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
                     <div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</p>
                         <p class="text-2xl font-black text-white" x-text="preguntas.length"></p>
@@ -288,7 +288,7 @@
                 </div>
                 <!-- Aciertos -->
                 <div
-                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
+                    class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
                     <div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Aciertos</p>
                         <p class="text-2xl font-black text-emerald-400" x-text="stats.correctas"></p>
@@ -297,7 +297,7 @@
                 </div>
                 <!-- Fallos -->
                 <div
-                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
+                    class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
                     <div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fallos</p>
                         <p class="text-2xl font-black text-red-400" x-text="stats.incorrectas"></p>
@@ -306,7 +306,7 @@
                 </div>
                 <!-- Racha -->
                 <div
-                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
+                    class="bg-slate-800/80 backdrop-blur-sm rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
                     <div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Racha</p>
                         <p class="text-2xl font-black text-purple-400" x-text="stats.racha"></p>
@@ -315,146 +315,55 @@
                 </div>
             </div>
 
-            <!-- Progress Bar -->
-            class="sticky bottom-4 z-20">
-            <button @click="siguientePregunta"
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/40 flex items-center justify-center gap-2 transition-all transform active:scale-95">
-                <span>Siguiente Pregunta</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-            </button>
-        </div>
-    </div>
+            <!-- Question Card (Split Header Style) -->
+            <div
+                class="bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden flex-1 flex flex-col">
+                <!-- Header Blue: ID + Question Text -->
+                <div class="bg-blue-600 p-6 text-center shadow-lg relative z-10">
+                    <span class="text-blue-200 text-xs font-bold tracking-widest uppercase mb-2 block"
+                        x-text="`PREGUNTA ${preguntas[indiceActual]?.id || '...'}`"></span>
+                    <h3 class="text-2xl md:text-3xl font-bold text-white leading-tight"
+                        x-text="preguntas[indiceActual]?.pregunta"></h3>
+                </div>
 
-    <!-- VISTA: FIN -->
-    <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center">
-        <div
-            class="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl w-full max-w-lg relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <!-- Body: Options Only -->
+                <div class="p-6 flex-1 flex flex-col justify-center gap-4 bg-slate-800">
+                    <template x-for="(opcion, index) in preguntas[indiceActual]?.opciones" :key="index">
+                        <button @click="responder(index)" :disabled="bloqueado" :class="claseBoton(index)"
+                            class="w-full text-left rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 group relative overflow-hidden py-6 px-4 shadow-md hover:shadow-lg cursor-pointer active:scale-[0.98]">
 
-            <h2 class="text-3xl font-black text-white mb-2">¡Misión Cumplida!</h2>
-            <p class="text-slate-400 mb-8">Resumen de tu sesión de entrenamiento</p>
-
-            <div class="relative w-48 h-48 mx-auto mb-8">
-                <canvas id="chartResultados"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
-                    <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Efectividad</span>
-                    <div
-                        class="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/20 transition-all">
-                    </div>
-                    <div class="relative z-10">
-                        <div
-                            class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                            📚</div>
-                        <h3 class="text-2xl font-bold text-white mb-2">Estudio General</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos
-                            los sistemas para mantenerte al día.</p>
-                    </div>
-                    <div
-                        class="relative z-10 flex items-center text-blue-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Comenzar <span class="ml-2">→</span>
-                    </div>
-                    </button>
-
-                    <!-- Card: Sistemas (ATA) -->
-                    <div
-                        class="rounded-3xl bg-slate-800 border border-slate-700 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
-                        <div class="absolute bottom-0 left-0 p-32 bg-purple-600/10 rounded-full blur-3xl -ml-16 -mb-16">
-                        </div>
-                        <div class="relative z-10">
-                            <div
-                                class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-3xl mb-4">
-                                ⚙️</div>
-                            <h3 class="text-2xl font-bold text-white mb-2">Por Sistemas</h3>
-                            <p class="text-slate-400 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
-
-                            <div class="flex gap-2">
-                                <select x-model="ataSeleccionado"
-                                    class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-purple-500">
-                                    <option value="">Seleccionar ATA...</option>
-                                    <template x-for="ata in atas" :key="ata.id">
-                                        <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
-                                    </template>
-                                </select>
-                                <button @click="cargarPreguntas(parseInt(ataSeleccionado))" :disabled="!ataSeleccionado"
-                                    class="bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 rounded-xl font-bold transition-colors">
-                                    Ir
-                                </button>
+                            <!-- Circle Letter -->
+                            <div :class="estiloLetra(index)"
+                                class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shrink-0 transition-colors border-2">
+                                <span x-text="['A', 'B', 'C', 'D'][index]"></span>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Card: Fallos -->
-                    <button @click="cargarPreguntas('fallos')"
-                        class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-red-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-red-900/20">
-                        <div
-                            class="absolute top-0 left-0 p-32 bg-red-600/10 rounded-full blur-3xl -ml-16 -mt-16 group-hover:bg-red-600/20 transition-all">
-                        </div>
-                        <div class="relative z-10">
-                            <div
-                                class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                ⚠️</div>
-                            <h3 class="text-2xl font-bold text-white mb-2">Repasar Fallos</h3>
-                            <p class="text-slate-400 text-sm leading-relaxed">Vuelve a intentar las preguntas que
-                                fallaste
-                                anteriormente.</p>
-                        </div>
-                        <div
-                            class="relative z-10 flex items-center text-red-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                            Repasar Ahora <span class="ml-2">→</span>
-                        </div>
-                    </button>
+                            <!-- Text -->
+                            <span class="text-lg font-medium text-slate-200 group-hover:text-white transition-colors"
+                                x-text="obtenerTextoOpcion(opcion)"></span>
+
+                            <!-- Feedback Icons -->
+                            <div x-show="bloqueado && index === preguntas[indiceActual].respuesta_correcta"
+                                class="absolute right-4 text-emerald-400 animate-bounce bg-slate-900/50 rounded-full p-1">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div x-show="bloqueado && index === seleccionada && index !== preguntas[indiceActual].respuesta_correcta"
+                                class="absolute right-4 text-red-400 animate-shake bg-slate-900/50 rounded-full p-1">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </div>
+                        </button>
+                    </template>
                 </div>
             </div>
 
-            <!-- VISTA: QUIZ (DASHBOARD STYLE) -->
-            <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6">
-
-                <!-- Top Stats Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <!-- Total -->
-                    <div
-                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</p>
-                            <p class="text-2xl font-black text-white" x-text="preguntas.length"></p>
-                        </div>
-                        <div class="text-2xl opacity-50">🟦</div>
-                    </div>
-                    <!-- Aciertos -->
-                    <div
-                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Aciertos</p>
-                            <p class="text-2xl font-black text-emerald-400" x-text="stats.correctas"></p>
-                        </div>
-                        <div class="text-2xl opacity-50">🟩</div>
-                    </div>
-                    <!-- Fallos -->
-                    <div
-                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fallos</p>
-                            <p class="text-2xl font-black text-red-400" x-text="stats.incorrectas"></p>
-                        </div>
-                        <div class="text-2xl opacity-50">🟥</div>
-                    </div>
-                    <!-- Racha -->
-                    <div
-                        class="bg-slate-800 rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
-                        <div>
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Racha</p>
-                            <p class="text-2xl font-black text-purple-400" x-text="stats.racha"></p>
-                        </div>
-                        <div class="text-2xl opacity-50">🔥</div>
-                    </div>
-                </div>
-
-                <!-- Progress Bar -->
-                class="sticky bottom-4 z-20">
+            <!-- Progress Bar / Next Button -->
+            <div class="sticky bottom-4 z-20">
                 <button @click="siguientePregunta"
                     class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/40 flex items-center justify-center gap-2 transition-all transform active:scale-95">
                     <span>Siguiente Pregunta</span>
@@ -541,6 +450,10 @@
                     if (score < 10) return 'Cadete';
                     if (score < 50) return 'Primer Oficial';
                     return 'Capitán';
+                },
+
+                get preguntaActual() {
+                    return this.preguntas[this.indiceActual];
                 },
 
                 async initApp() {
@@ -669,12 +582,12 @@
                     }
                 },
 
-                async responder(letra) {
+                async responder(index) {
                     if (this.bloqueado) return;
                     this.bloqueado = true;
-                    this.seleccionada = letra;
+                    this.seleccionada = index;
 
-                    const esCorrecta = letra === this.preguntaActual.correcta;
+                    const esCorrecta = index === this.preguntaActual.respuesta_correcta;
 
                     if (esCorrecta) {
                         this.stats.correctas++;
@@ -719,9 +632,8 @@
                     if (this.vista !== 'quiz') return;
                     if (this.mostrarSiguiente && e.key === 'Enter') return this.siguientePregunta();
                     if (this.bloqueado) return;
-
                     const key = e.key.toUpperCase();
-                    if (['A', 'B', 'C', 'D'].includes(key)) this.responder(key);
+                    if (['A', 'B', 'C', 'D'].includes(key)) this.responder(['A', 'B', 'C', 'D'].indexOf(key));
                 },
 
                 guardarEstadoLocal() {
@@ -800,26 +712,29 @@
                     setTimeout(() => this.toast.visible = false, 3000);
                 },
 
-                obtenerTextoOpcion(letra) {
-                    return this.preguntaActual ? this.preguntaActual['opcion_' + letra.toLowerCase()] : '';
+                obtenerTextoOpcion(index) {
+                    if (!this.preguntaActual) return '';
+                    const opciones = this.preguntaActual.opciones;
+                    if (typeof opciones[index] === 'string') return opciones[index];
+                    return opciones[index]?.texto || '';
                 },
 
-                claseBoton(letra) {
+                claseBoton(index) {
                     if (!this.bloqueado) return 'border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 cursor-pointer';
 
-                    if (letra === this.preguntaActual.correcta)
+                    if (index === this.preguntaActual.respuesta_correcta)
                         return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500';
 
-                    if (letra === this.seleccionada && letra !== this.preguntaActual.correcta)
+                    if (index === this.seleccionada && index !== this.preguntaActual.respuesta_correcta)
                         return 'bg-red-500/10 border-red-500 text-red-400 shake ring-1 ring-red-500';
 
                     return 'border-slate-800 opacity-30 cursor-not-allowed';
                 },
 
-                estiloLetra(letra) {
+                estiloLetra(index) {
                     if (this.bloqueado) {
-                        if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-slate-900';
-                        if (letra === this.seleccionada) return 'bg-red-500 text-white';
+                        if (index === this.preguntaActual.respuesta_correcta) return 'bg-emerald-500 text-slate-900';
+                        if (index === this.seleccionada) return 'bg-red-500 text-white';
                         return 'bg-slate-700 text-slate-500';
                     }
                     return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
