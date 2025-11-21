@@ -57,21 +57,25 @@ function app() {
         async initApp() {
             this.checkLocalStorage();
 
-            // ⚠️ DEVELOPMENT MODE: Service Worker DISABLED to prevent caching
-            // This ensures you see live code updates immediately during development
-            // TO RE-ENABLE FOR PRODUCTION: Uncomment the lines below
-            
-            // Unregister any existing Service Workers
+            // ============================================================
+            // 🚧 MODO DESARROLLO (LIMPIEZA DE CACHÉ)
+            // Esto busca y ELIMINA cualquier Service Worker activo.
+            // Así garantizas que siempre ves la versión más reciente de tu código.
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.getRegistrations().then(registrations => {
-                    registrations.forEach(registration => registration.unregister());
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for(let registration of registrations) {
+                        registration.unregister();
+                        console.log('🧹 Service Worker eliminado: Modo Desarrollo Activo');
+                    }
                 });
             }
 
-            // Registro PWA (Si existe el archivo sw.js en la raíz)
+            // 🚀 MODO PRODUCCIÓN (PWA / OFFLINE)
+            // Descomenta las siguientes 3 líneas SOLO cuando termines la app.
             // if ('serviceWorker' in navigator) {
             //     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
             // }
+            // ============================================================
 
             try {
                 const { data } = await sb.auth.getSession();
