@@ -133,17 +133,17 @@
                 <h1 class="text-3xl md:text-4xl font-black tracking-tight text-gray-900 mb-1">
                     B787 <span class="text-blue-600">FlexEdwin</span>
                 </h1>
-                <p class="text-gray-500 text-sm font-medium tracking-wide uppercase">Professional Certification Platform</p>
+                <p class="text-gray-500 text-sm font-medium tracking-wide uppercase">Plataforma de Escalafón Técnico</p>
             </div>
 
             <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
                 <div class="text-right hidden md:block">
-                    <p class="text-xs text-gray-500 uppercase font-bold">Current Level</p>
+                    <p class="text-xs text-gray-500 uppercase font-bold">Nivel Técnico</p>
                     <p class="text-blue-600 font-bold" x-text="nivelUsuario"></p>
                 </div>
                 <div
                     class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-lg shadow-md border border-gray-200">
-                    👤</div>
+                    🛠️</div>
                 <button @click="logout"
                     class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600 transition-colors"
                     title="Cerrar Sesión">
@@ -230,13 +230,12 @@
                         <div
                             class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
                             📚</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">General Study</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">Standard mode. Random questions from all
-                            modules.</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Estudio General</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos los módulos.</p>
                     </div>
                     <div
                         class="relative z-10 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Start Session <span class="ml-2">→</span></div>
+                        Iniciar Sesión <span class="ml-2">→</span></div>
                 </button>
 
                 <!-- Card: Sistemas (ATA) -->
@@ -246,8 +245,8 @@
                         <div
                             class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-3xl mb-4">
                             ⚙️</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">By Module</h3>
-                        <p class="text-gray-600 text-sm mb-4">Focus on a specific ATA chapter.</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Por Módulo ATA</h3>
+                        <p class="text-gray-600 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
 
                         <div class="flex gap-2">
                             <select x-model="ataSeleccionado"
@@ -269,12 +268,12 @@
                         <div
                             class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
                             ⚠️</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Review Mistakes</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">Retry questions you previously missed.</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Repasar Fallos</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">Reintenta preguntas que fallaste previamente.</p>
                     </div>
                     <div
                         class="relative z-10 flex items-center text-red-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Start Review <span class="ml-2">→</span></div>
+                        Iniciar Repaso <span class="ml-2">→</span></div>
                 </button>
             </div>
         </div>

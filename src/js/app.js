@@ -48,9 +48,10 @@ function app() {
         },
         get nivelUsuario() {
             const score = this.stats.correctas;
-            if (score < 10) return 'Trainee';
-            if (score < 50) return 'Certified Tech';
-            return 'Senior Inspector';
+            if (score < 50) return 'Aspirante';
+            if (score < 200) return 'Técnico Nivel 1';
+            if (score < 500) return 'Técnico Nivel 2';
+            return 'Inspector / Ing.';
         },
 
         // --- CICLO DE VIDA ---
@@ -162,7 +163,7 @@ function app() {
 
         async cargarPreguntas(entrada) {
             this.vista = 'cargando';
-            this.mensajeCarga = 'Descargando datos de vuelo...';
+            this.mensajeCarga = 'Preparando taller...';
 
             this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
             this.resetStats();
@@ -343,24 +344,24 @@ function app() {
 
         // --- CLASES CSS DINÁMICAS ---
         claseBoton(letra) {
-            if (!this.bloqueado) return 'border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-blue-500 hover:ring-1 hover:ring-blue-500 cursor-pointer';
+            if (!this.bloqueado) return 'bg-white border-gray-200 shadow-sm hover:bg-gray-50 hover:border-blue-400 cursor-pointer';
 
             if (letra === this.preguntaActual.correcta)
-                return 'bg-emerald-500/10 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500';
+                return 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-200';
 
             if (letra === this.seleccionada && letra !== this.preguntaActual.correcta)
-                return 'bg-red-500/10 border-red-500 text-red-400 shake ring-1 ring-red-500';
+                return 'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-200';
 
-            return 'border-slate-800 opacity-30 cursor-not-allowed';
+            return 'border-gray-200 opacity-40 cursor-not-allowed';
         },
 
         estiloLetra(letra) {
             if (this.bloqueado) {
-                if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-slate-900';
+                if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-white';
                 if (letra === this.seleccionada) return 'bg-red-500 text-white';
-                return 'bg-slate-700 text-slate-500';
+                return 'bg-gray-200 text-gray-500';
             }
-            return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
+            return 'bg-gray-100 text-gray-700 group-hover:bg-blue-500 group-hover:text-white';
         }
     }
 }
