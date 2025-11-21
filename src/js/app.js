@@ -17,6 +17,14 @@ function app() {
         atas: [],
         ataSeleccionado: '',
 
+        // --- BANCOS DE PREGUNTAS ---
+        bancoSeleccionado: null,
+        bancos: [
+            { id: 'b787', nombre: 'Técnico B787', icono: '✈️', descripcion: 'Sistemas y mantenimiento Boeing 787' },
+            { id: 'ingles', nombre: 'Inglés Técnico', icono: '🇬🇧', descripcion: 'Terminología aeronáutica en inglés' },
+            { id: 'amos', nombre: 'Sistema AMOS', icono: '💻', descripcion: 'Gestión de mantenimiento AMOS' }
+        ],
+
         // --- ESTADO DEL QUIZ ---
         modo: '',
         preguntas: [],
@@ -60,8 +68,6 @@ function app() {
 
             // ============================================================
             // 🚧 MODO DESARROLLO (LIMPIEZA DE CACHÉ)
-            // Esto busca y ELIMINA cualquier Service Worker activo.
-            // Así garantizas que siempre ves la versión más reciente de tu código.
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     for(let registration of registrations) {
@@ -70,12 +76,6 @@ function app() {
                     }
                 });
             }
-
-            // 🚀 MODO PRODUCCIÓN (PWA / OFFLINE)
-            // Descomenta las siguientes 3 líneas SOLO cuando termines la app.
-            // if ('serviceWorker' in navigator) {
-            //     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Error:', err));
-            // }
             // ============================================================
 
             try {
@@ -83,7 +83,14 @@ function app() {
                 if (data.session) {
                     this.auth.user = data.session.user;
                     await this.cargarAtas();
-                    this.vista = 'menu';
+                    // Restaurar banco si existe
+                    const bancoGuardado = localStorage.getItem('b787_banco_actual');
+                    if (bancoGuardado) {
+                        this.bancoSeleccionado = bancoGuardado;
+                        this.vista = 'menu';
+                    } else {
+                        this.vista = 'seleccion_banco';
+                    }
                 } else {
                     this.vista = 'login';
                 }
@@ -121,7 +128,7 @@ function app() {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
-                this.vista = 'menu';
+                this.vista = 'seleccion_banco';
             }
         },
 
@@ -135,7 +142,7 @@ function app() {
             } else {
                 this.auth.user = data.user;
                 await this.cargarAtas();
-                this.vista = 'menu';
+                this.vista = 'seleccion_banco';
                 this.showToast("Modo Invitado Activado", 'info');
             }
         },
@@ -144,7 +151,20 @@ function app() {
             await sb.auth.signOut();
             this.auth.user = null;
             localStorage.removeItem('b787_sesion');
+            localStorage.removeItem('b787_banco_actual');
             this.vista = 'login';
+        },
+
+        // --- SELECCIÓN DE BANCO ---
+        seleccionarBanco(id) {
+            this.bancoSeleccionado = id;
+            this.vista = 'menu';
+            localStorage.setItem('b787_banco_actual', id);
+        },
+
+        cambiarBanco() {
+            this.vista = 'seleccion_banco';
+            this.ataSeleccionado = '';
         },
 
         // --- LÓGICA DEL QUIZ ---
@@ -164,6 +184,9 @@ function app() {
         async cargarPreguntas(entrada) {
             this.vista = 'cargando';
             this.mensajeCarga = 'Preparando taller...';
+
+            // TODO: Filtrar por bancoSeleccionado cuando se implementen tablas separadas
+            // const banco = this.bancoSeleccionado;
 
             this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
             this.resetStats();
@@ -211,7 +234,6 @@ function app() {
             if (esCorrecta) {
                 this.stats.correctas++;
                 this.stats.racha++;
-                // Confetti cada 5 aciertos seguidos
                 if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
                     if (window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
                 }
@@ -221,7 +243,6 @@ function app() {
                 if (navigator.vibrate) navigator.vibrate(200);
             }
 
-            // Envío a Supabase (Optimistic UI)
             sb.rpc('registrar_respuesta', {
                 p_pregunta_id: this.preguntaActual.id,
                 es_correcta: esCorrecta
@@ -229,7 +250,6 @@ function app() {
 
             this.guardarEstadoLocal();
 
-            // Lógica de avance híbrida
             if (esCorrecta) {
                 setTimeout(() => this.siguientePregunta(), 1000);
             } else {
@@ -273,7 +293,6 @@ function app() {
             localStorage.removeItem('b787_sesion');
             this.sesionGuardada = false;
 
-            // Confetti final si aprobó
             if (this.porcentajeAcierto >= 80 && window.confetti) {
                 const duration = 3000;
                 const end = Date.now() + duration;
@@ -284,7 +303,6 @@ function app() {
                 }());
             }
 
-            // Renderizar Gráfico
             this.$nextTick(() => this.renderChart());
         },
 
@@ -344,24 +362,24 @@ function app() {
 
         // --- CLASES CSS DINÁMICAS ---
         claseBoton(letra) {
-            if (!this.bloqueado) return 'bg-white border-gray-200 shadow-sm hover:bg-gray-50 hover:border-blue-400 cursor-pointer';
+            if (!this.bloqueado) return 'bg-slate-800 border-slate-700 shadow-sm hover:bg-slate-700 hover:border-blue-500 cursor-pointer';
 
             if (letra === this.preguntaActual.correcta)
-                return 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-200';
+                return 'bg-emerald-900/50 border-emerald-500 text-emerald-400 ring-1 ring-emerald-500';
 
             if (letra === this.seleccionada && letra !== this.preguntaActual.correcta)
-                return 'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-200';
+                return 'bg-red-900/50 border-red-500 text-red-400 shake ring-1 ring-red-500';
 
-            return 'border-gray-200 opacity-40 cursor-not-allowed';
+            return 'border-slate-800 opacity-40 cursor-not-allowed';
         },
 
         estiloLetra(letra) {
             if (this.bloqueado) {
                 if (letra === this.preguntaActual.correcta) return 'bg-emerald-500 text-white';
                 if (letra === this.seleccionada) return 'bg-red-500 text-white';
-                return 'bg-gray-200 text-gray-500';
+                return 'bg-slate-700 text-slate-500';
             }
-            return 'bg-gray-100 text-gray-700 group-hover:bg-blue-500 group-hover:text-white';
+            return 'bg-slate-700 text-slate-400 group-hover:bg-blue-500 group-hover:text-white';
         }
     }
 }
