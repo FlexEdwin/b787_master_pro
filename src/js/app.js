@@ -47,10 +47,10 @@ function app() {
             return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
         },
         get nivelUsuario() {
-            const score = this.stats.correctas;
-            if (score < 10) return 'Cadete';
-            if (score < 50) return 'Primer Oficial';
-            return 'Capitán';
+        const score = this.stats.correctas;
+        if (score < 10) return 'Trainee';
+        if (score < 50) return 'Certified Tech';
+        return 'Senior Inspector';
         },
 
         // --- CICLO DE VIDA ---

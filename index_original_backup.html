@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="App de estudio Premium para certificación B787.">
+    <link rel="manifest" href="./manifest.json">
+    <title>B787 FlexEdwin</title>
+
+    <!-- ESTILOS LOCALES -->
+    <link href="./output.css" rel="stylesheet">
+
+    <!-- SCRIPTS DE DEPENDENCIAS (Cargados desde local) -->
+    <script defer src="./alpine.js"></script>
+    <script src="./supabase.js"></script>
+    <script src="./chart.js"></script>
+    <script src="./confetti.js"></script>
+
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Utilidades específicas que no están en Tailwind */
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Animaciones */
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .pop {
+            animation: pop 0.3s ease-in-out;
+        }
+
+        /* Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-900 text-slate-100 font-sans antialiased selection:bg-blue-500 selection:text-white min-h-screen flex flex-col">
+
+    <!-- Main App Container -->
+    <div x-data="app()" x-init="initApp()" @keydown.window="handleTeclado($event)"
+        class="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 md:p-6 relative" x-cloak>
+
+        <!-- TOAST -->
+        <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-[-20px]" x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 translate-y-[-20px]"
+            class="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-full shadow-2xl backdrop-blur-md border border-white/10 flex items-center gap-3 font-bold text-sm"
+            :class="toast.tipo === 'error' ? 'bg-red-500/90 text-white' : 'bg-emerald-500/90 text-white'">
+            <span x-text="toast.tipo === 'error' ? '⚠️' : '✅'"></span>
+            <span x-text="toast.mensaje"></span>
+        </div>
+
+        <!-- HEADER -->
+        <header x-show="vista !== 'cargando'"
+            class="mb-8 text-center md:text-left md:flex md:justify-between md:items-end border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white mb-1">
+                    B787 <span class="text-blue-500">FlexEdwin</span>
+                </h1>
+                <p class="text-slate-400 text-sm font-medium tracking-wide uppercase">Study Platform by Flex</p>
+            </div>
+
+            <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
+                <div class="text-right hidden md:block">
+                    <p class="text-xs text-slate-400 uppercase font-bold">Rango Actual</p>
+                    <p class="text-blue-400 font-bold" x-text="nivelUsuario"></p>
+                </div>
+                <div
+                    class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-lg shadow-lg border border-white/10">
+                    👨‍✈️</div>
+                <button @click="logout"
+                    class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-red-400 transition-colors"
+                    title="Cerrar Sesión">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- VISTA: LOADING -->
+        <div x-show="vista === 'cargando'" class="flex-1 flex flex-col items-center justify-center">
+            <div class="relative w-20 h-20 mb-6">
+                <div class="absolute inset-0 border-4 border-slate-800 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-blue-500 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">✈️</div>
+            </div>
+            <p class="text-blue-400 font-mono text-sm tracking-widest uppercase animate-pulse" x-text="mensajeCarga">
+            </p>
+        </div>
+
+        <!-- VISTA: LOGIN -->
+        <div x-show="vista === 'login'" class="flex-1 flex flex-col items-center justify-center">
+            <div
+                class="w-full max-w-md bg-slate-800/50 backdrop-blur-xl p-8 rounded-3xl border border-slate-700 shadow-2xl">
+                <div class="text-center mb-8">
+                    <div
+                        class="inline-flex p-4 rounded-2xl bg-blue-500/10 text-4xl mb-4 ring-1 ring-blue-500/20 animate-float">
+                        ✈️</div>
+                    <h2 class="text-2xl font-bold text-white">Bienvenido a Bordo</h2>
+                    <p class="text-slate-400 text-sm mt-2">Inicia sesión para acceder al simulador</p>
+                </div>
+
+                <form @submit.prevent="login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Email</label>
+                        <input type="email" x-model="auth.email"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="usuario@aerolinea.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Contraseña</label>
+                        <input type="password" x-model="auth.password"
+                            class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="••••••••">
+                    </div>
+                    <button type="submit" :disabled="cargandoAuth"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
+                        <span x-show="!cargandoAuth">Ingresar al Cockpit</span>
+                        <span x-show="cargandoAuth" class="animate-pulse">Verificando credenciales...</span>
+                    </button>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
+                    <button @click="loginAnonimo"
+                        class="text-slate-400 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
+                        <span>🕵️‍♂️</span> Acceso Invitado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA: MENU -->
+        <div x-show="vista === 'menu'" class="flex-1 flex flex-col justify-center">
+            <!-- Recuperar Sesión Alert -->
+            <div x-show="sesionGuardada" @click="recuperarSesion"
+                class="mb-8 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-yellow-500/20 transition-all group">
+                <div class="flex items-center gap-4">
+                    <div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-500">⚠️</div>
+                    <div>
+                        <h3 class="font-bold text-yellow-400">Sesión Pendiente Detectada</h3>
+                        <p class="text-xs text-yellow-200/60">Haz clic para continuar tu último vuelo</p>
+                    </div>
+                </div>
+                <div class="text-yellow-500 group-hover:translate-x-1 transition-transform">➜</div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Card: Estudio General -->
+                <button @click="cargarPreguntas('nuevas')"
+                    class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-blue-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-blue-900/20">
+                    <div
+                        class="absolute top-0 right-0 p-32 bg-blue-600/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/20 transition-all">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-blue-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                            📚</div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Estudio General</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos
+                            los sistemas.</p>
+                    </div>
+                    <div
+                        class="relative z-10 flex items-center text-blue-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                        Comenzar <span class="ml-2">→</span></div>
+                </button>
+
+                <!-- Card: Sistemas (ATA) -->
+                <div
+                    class="rounded-3xl bg-slate-800 border border-slate-700 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
+                    <div class="absolute bottom-0 left-0 p-32 bg-purple-600/10 rounded-full blur-3xl -ml-16 -mb-16">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center text-3xl mb-4">
+                            ⚙️</div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Por Sistemas</h3>
+                        <p class="text-slate-400 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
+
+                        <div class="flex gap-2">
+                            <select x-model="ataSeleccionado"
+                                @change="if(ataSeleccionado) cargarPreguntas(parseInt(ataSeleccionado))"
+                                class="flex-1 bg-slate-900 border border-slate-600 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-purple-500 cursor-pointer">
+                                <option value="">Seleccionar ATA...</option>
+                                <template x-for="ata in atas" :key="ata.id">
+                                    <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Fallos -->
+                <button @click="cargarPreguntas('fallos')"
+                    class="group relative overflow-hidden rounded-3xl bg-slate-800 border border-slate-700 hover:border-red-500/50 transition-all duration-300 text-left h-64 flex flex-col justify-between p-6 hover:shadow-2xl hover:shadow-red-900/20">
+                    <div
+                        class="absolute top-0 left-0 p-32 bg-red-600/10 rounded-full blur-3xl -ml-16 -mt-16 group-hover:bg-red-600/20 transition-all">
+                    </div>
+                    <div class="relative z-10">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                            ⚠️</div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Repasar Fallos</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Vuelve a intentar las preguntas que fallaste
+                            anteriormente.</p>
+                    </div>
+                    <div
+                        class="relative z-10 flex items-center text-red-400 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                        Repasar Ahora <span class="ml-2">→</span></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA: QUIZ -->
+        <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6">
+
+            <!-- Top Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-blue-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</p>
+                        <p class="text-2xl font-black text-white" x-text="preguntas.length"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🟦</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-emerald-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Aciertos</p>
+                        <p class="text-2xl font-black text-emerald-400" x-text="stats.correctas"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🟩</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-red-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Fallos</p>
+                        <p class="text-2xl font-black text-red-400" x-text="stats.incorrectas"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🟥</div>
+                </div>
+                <div
+                    class="bg-slate-800 rounded-2xl p-4 border-l-4 border-purple-500 shadow-lg flex items-center justify-between">
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Racha</p>
+                        <p class="text-2xl font-black text-purple-400" x-text="stats.racha"></p>
+                    </div>
+                    <div class="text-2xl opacity-50">🔥</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-blue-500 h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                    :style="`width: ${progresoPorcentaje}%`"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div
+                class="flex-1 flex flex-col bg-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-700">
+                <!-- Header Azul -->
+                <div class="bg-blue-600 p-6 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="bg-white/20 px-3 py-1 rounded-lg text-xs font-bold text-white border border-white/10"
+                            x-text="`PREGUNTA ${preguntaActual?.numero || '...'}`"></span>
+                    </div>
+                    <button @click="pausarQuiz"
+                        class="text-blue-100 hover:text-white transition-colors text-xs font-bold">
+                        PAUSAR / SALIR
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 md:p-8 flex-1 flex flex-col">
+                    <h2 class="text-xl md:text-2xl font-bold text-white leading-relaxed mb-8"
+                        x-text="preguntaActual?.texto"></h2>
+
+                    <div class="grid gap-4">
+                        <template x-for="letra in ['A', 'B', 'C', 'D']">
+                            <button @click="responder(letra)" :disabled="bloqueado"
+                                class="group relative w-full p-5 rounded-2xl text-left border-2 transition-all duration-200 flex items-start gap-4"
+                                :class="claseBoton(letra)">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
+                                    :class="estiloLetra(letra)" x-text="letra"></div>
+                                <span
+                                    class="text-sm md:text-base font-medium text-slate-200 group-hover:text-white transition-colors"
+                                    x-text="obtenerTextoOpcion(letra)"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Button -->
+            <div x-show="mostrarSiguiente" class="sticky bottom-4 z-20" x-transition.slide.up>
+                <button @click="siguientePregunta"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/40 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                    <span>Siguiente Pregunta</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA: FIN -->
+        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center">
+            <div
+                class="bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl w-full max-w-lg relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <h2 class="text-3xl font-black text-white mb-2">¡Misión Cumplida!</h2>
+                <p class="text-slate-400 mb-8">Resumen de tu sesión</p>
+
+                <div class="relative w-48 h-48 mx-auto mb-8">
+                    <canvas id="chartResultados"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-4xl font-black text-white" x-text="`${porcentajeAcierto}%`"></span>
+                        <span class="text-xs text-slate-400 uppercase tracking-widest font-bold">Efectividad</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-emerald-500/20">
+                        <p class="text-3xl font-black text-emerald-400" x-text="stats.correctas"></p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Correctas</p>
+                    </div>
+                    <div class="bg-slate-900/50 p-4 rounded-2xl border border-red-500/20">
+                        <p class="text-3xl font-black text-red-400" x-text="stats.incorrectas"></p>
+                        <p class="text-xs text-slate-500 uppercase font-bold">Incorrectas</p>
+                    </div>
+                </div>
+                <button @click="volverAlMenu"
+                    class="w-full bg-slate-700 hover:bg-slate-600 text-white py-4 rounded-xl font-bold transition-all">Volver
+                    al Menú</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT DE LÓGICA PRINCIPAL -->
+    <script src="./src/js/app.js"></script>
+
+</body>
+
+</html>
