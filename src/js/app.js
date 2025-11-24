@@ -231,22 +231,34 @@ function app() {
 
             const esCorrecta = letra === this.preguntaActual.correcta;
 
+            // --- ACTUALIZACIÓN VISUAL ---
             if (esCorrecta) {
                 this.stats.correctas++;
                 this.stats.racha++;
-                if (this.stats.racha > 0 && this.stats.racha % 5 === 0) {
-                    if (window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
             } else {
                 this.stats.incorrectas++;
                 this.stats.racha = 0;
-                if (navigator.vibrate) navigator.vibrate(200);
             }
 
-            sb.rpc('registrar_respuesta', {
+            // --- DIAGNÓSTICO: INTENTO DE GUARDADO ---
+            console.log("📡 Intentando guardar en DB:", {
+                pregunta_id: this.preguntaActual.id,
+                es_correcta: esCorrecta,
+                usuario: this.auth.user?.id
+            });
+
+            const { data, error } = await sb.rpc('registrar_respuesta', {
                 p_pregunta_id: this.preguntaActual.id,
                 es_correcta: esCorrecta
             });
+
+            if (error) {
+                console.error("❌ ERROR FATAL DE SUPABASE:", error);
+                this.showToast("Error guardando progreso: " + error.message, 'error');
+            } else {
+                console.log("✅ Guardado exitoso en Supabase");
+            }
+            // ------------------------------------------
 
             this.guardarEstadoLocal();
 
