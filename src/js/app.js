@@ -155,6 +155,38 @@ function app() {
             this.vista = 'login';
         },
 
+        async reiniciarProgreso() {
+            // 1. Preguntar confirmación (Es una acción destructiva)
+            if (!confirm("⚠️ ¿Estás seguro?\n\nEsto reiniciará tu nivel de 'Aspirante' y todas las preguntas volverán a aparecer en el Estudio General.\n\nNo se borrará tu historial de errores, solo tu racha de aciertos.")) {
+                return;
+            }
+
+            this.vista = 'cargando';
+            this.mensajeCarga = 'Reiniciando sistemas...';
+
+            try {
+                // Llamada al RPC. Si quieres resetear solo un ATA, pasarías { p_ata_id: 29 }
+                const { error } = await sb.rpc('reiniciar_progreso', { p_ata_id: null });
+
+                if (error) throw error;
+
+                // Limpiar estado local
+                this.preguntas = [];
+                this.resetStats();
+                
+                this.showToast("¡Progreso reiniciado! A empezar de cero.", 'info');
+                
+                // Recargar datos frescos
+                await this.cargarAtas(); 
+                this.vista = 'menu';
+
+            } catch (e) {
+                console.error(e);
+                this.showToast("Error al reiniciar", 'error');
+                this.vista = 'menu';
+            }
+        },
+
         // --- SELECCIÓN DE BANCO ---
         seleccionarBanco(id) {
             this.bancoSeleccionado = id;
