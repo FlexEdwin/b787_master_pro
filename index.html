@@ -249,83 +249,101 @@
 
         <!-- VISTA: MENU -->
         <div x-show="vista === 'menu'" class="flex-1 flex flex-col justify-center">
-            <!-- Recuperar Sesión Alert -->
-            <div x-show="sesionGuardada" @click="recuperarSesion"
-                class="mb-8 bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-yellow-100 transition-all group">
-                <div class="flex items-center gap-4">
-                    <div class="p-2 bg-yellow-100 rounded-lg text-yellow-600">⚠️</div>
-                    <div>
-                        <h3 class="font-bold text-yellow-800">Resume Previous Session</h3>
-                        <p class="text-xs text-yellow-600">Click to continue where you left off</p>
-                    </div>
-                </div>
-                <div class="text-yellow-600 group-hover:translate-x-1 transition-transform">➜</div>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-6">
-                <!-- Card: Estudio General -->
-                <button @click="cargarPreguntas('nuevas')"
-                    class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
-                    <div class="relative z-10">
-                        <div
-                            class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                            📚</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Estudio General</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos los módulos.</p>
-                    </div>
-                    <div
-                        class="relative z-10 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Iniciar Sesión <span class="ml-2">→</span></div>
-                </button>
-
-                <!-- Card: Sistemas (ATA) -->
-                <div
-                    class="rounded-2xl bg-white border border-gray-200 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <div
-                            class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-3xl mb-4">
-                            ⚙️</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Por Módulo ATA</h3>
-                        <p class="text-gray-600 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
-
-                        <div class="flex gap-2 -mx-2 -mb-2 -mr-3 px-2 pb-2 pr-3">
-                            <select x-model="ataSeleccionado"
-                                @change="if(ataSeleccionado) cargarPreguntas(parseInt(ataSeleccionado))"
-                                class="flex-1 bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 cursor-pointer">
-                                <option value="">Select ATA...</option>
-                                <template x-for="ata in atas" :key="ata.id">
-                                    <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
-                                </template>
-                            </select>
+            
+            <!-- CONTENIDO B787 (ACTIVO) -->
+            <div x-show="bancoSeleccionado === 'b787'" class="w-full">
+                <!-- Recuperar Sesión Alert -->
+                <div x-show="sesionGuardada" @click="recuperarSesion"
+                    class="mb-8 bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-yellow-100 transition-all group">
+                    <div class="flex items-center gap-4">
+                        <div class="p-2 bg-yellow-100 rounded-lg text-yellow-600">⚠️</div>
+                        <div>
+                            <h3 class="font-bold text-yellow-800">Resume Previous Session</h3>
+                            <p class="text-xs text-yellow-600">Click to continue where you left off</p>
                         </div>
                     </div>
+                    <div class="text-yellow-600 group-hover:translate-x-1 transition-transform">➜</div>
                 </div>
 
-                <!-- Card: Fallos -->
-                <button @click="cargarPreguntas('fallos')"
-                    class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-red-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
-                    <div class="relative z-10">
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Card: Estudio General -->
+                    <button @click="cargarPreguntas('nuevas')"
+                        class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
+                        <div class="relative z-10">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                                📚</div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Estudio General</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos los módulos.</p>
+                        </div>
                         <div
-                            class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                            ⚠️</div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Repasar Fallos</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">Reintenta preguntas que fallaste previamente.</p>
-                    </div>
+                            class="relative z-10 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                            Iniciar Sesión <span class="ml-2">→</span></div>
+                    </button>
+
+                    <!-- Card: Sistemas (ATA) -->
                     <div
-                        class="relative z-10 flex items-center text-red-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                        Iniciar Repaso <span class="ml-2">→</span></div>
-                </button>
+                        class="rounded-2xl bg-white border border-gray-200 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-3xl mb-4">
+                                ⚙️</div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Por Módulo ATA</h3>
+                            <p class="text-gray-600 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
+
+                            <div class="flex gap-2 -mx-2 -mb-2 -mr-3 px-2 pb-2 pr-3">
+                                <select x-model="ataSeleccionado"
+                                    @change="if(ataSeleccionado) cargarPreguntas(parseInt(ataSeleccionado))"
+                                    class="flex-1 bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 cursor-pointer">
+                                    <option value="">Select ATA...</option>
+                                    <template x-for="ata in atas" :key="ata.id">
+                                        <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card: Fallos -->
+                    <button @click="cargarPreguntas('fallos')"
+                        class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-red-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
+                        <div class="relative z-10">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                                ⚠️</div>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Repasar Fallos</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Reintenta preguntas que fallaste previamente.</p>
+                        </div>
+                        <div
+                            class="relative z-10 flex items-center text-red-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
+                            Iniciar Repaso <span class="ml-2">→</span></div>
+                    </button>
+                </div>
+
+                <!-- ZONA DE GESTIÓN -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <button @click="reiniciarProgreso" class="w-full flex items-center justify-center gap-2 text-gray-500 hover:text-red-600 text-xs font-bold tracking-widest uppercase p-4 rounded-xl hover:bg-red-50 transition-all group">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Reiniciar Todo el Progreso
+                    </button>
+                </div>
             </div>
 
-            <!-- ZONA DE GESTIÓN -->
-            <div class="mt-8 pt-6 border-t border-gray-200">
-                <button @click="reiniciarProgreso" class="w-full flex items-center justify-center gap-2 text-gray-500 hover:text-red-600 text-xs font-bold tracking-widest uppercase p-4 rounded-xl hover:bg-red-50 transition-all group">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Reiniciar Todo el Progreso
-                </button>
+            <!-- CONTENIDO OTROS BANCOS (PRÓXIMAMENTE) -->
+            <div x-show="bancoSeleccionado !== 'b787'" class="flex flex-col items-center justify-center text-center h-full py-12 animate-float">
+                <div class="text-8xl mb-6 filter drop-shadow-md">🚧</div>
+                <h3 class="text-3xl font-black text-gray-900 mb-4">Próximamente</h3>
+                <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
+                    Estamos preparando el contenido técnico para <br>
+                    <span class="font-bold text-blue-600 text-xl" x-text="bancos.find(b => b.id === bancoSeleccionado)?.nombre"></span>.
+                </p>
+                <div class="mt-8 p-4 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium border border-blue-100">
+                    🔔 Te notificaremos cuando esté disponible.
+                </div>
             </div>
+
         </div>
 
         <!-- VISTA: QUIZ -->
