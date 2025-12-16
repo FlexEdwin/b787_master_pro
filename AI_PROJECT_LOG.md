@@ -32,6 +32,31 @@
 
 ---
 
+### [2025-12-16] - Multi-Banco Backend Integration ✅
+
+**IMPLEMENTACIÓN COMPLETADA:**
+
+- ✅ Reemplazado array hardcodeado `bancos` por `listaBancos` dinámico desde BD
+- ✅ Creada función `cargarBancos()` para fetch desde Supabase (tabla `bancos`)
+- ✅ Actualizado `cargarPreguntas()` para pasar `p_banco_id` a RPCs
+- ✅ Agregada validación: previene carga si no hay banco seleccionado
+- ✅ Regla de negocio: Reset ATA al cambiar de banco
+- ✅ UI actualizada: Feedback visual de selección (border azul + fondo tintado)
+- ✅ Actualizado HTML: 3 referencias de `bancos` → `listaBancos`
+
+**ESTRUCTURA DE BD REQUERIDA:**
+
+- Tabla `bancos`: columnas `id`, `nombre`, `descripcion`, `slug`
+- RPCs actualizados para aceptar parámetro `p_banco_id`
+
+**RESULTADO:**
+
+- Backend y frontend totalmente integrados para Multi-Banco
+- El sistema ahora filtra preguntas por banco seleccionado
+- Los ATAs se resetean al cambiar de contexto (previene inconsistencias)
+
+---
+
 ### [FECHA DE HOY] - INICIO DE REFACTORIZACIÓN
 
 - Creada documentación base (Brief y Contexto).

@@ -19,11 +19,8 @@ function app() {
 
         // --- BANCOS DE PREGUNTAS ---
         bancoSeleccionado: null,
-        bancos: [
-            { id: 'b787', nombre: 'Técnico B787', icono: '✈️', descripcion: 'Sistemas y mantenimiento Boeing 787' },
-            { id: 'ingles', nombre: 'Inglés Técnico', icono: '🇬🇧', descripcion: 'Terminología aeronáutica en inglés' },
-            { id: 'amos', nombre: 'Sistema AMOS', icono: '💻', descripcion: 'Gestión de mantenimiento AMOS' }
-        ],
+        listaBancos: [], // Populated from database via cargarBancos()
+
 
         // --- ESTADO DEL QUIZ ---
         modo: '',
@@ -84,6 +81,7 @@ function app() {
                 if (data.session) {
                     this.auth.user = data.session.user;
                     await this.cargarAtas();
+                    await this.cargarBancos(); // 🆕 Load banks from database
                     // Restaurar banco si existe
                     const bancoGuardado = localStorage.getItem('b787_banco_actual');
                     if (bancoGuardado) {
@@ -105,6 +103,21 @@ function app() {
         async cargarAtas() {
             const { data } = await sb.from('atas').select('id, nombre').order('id');
             if (data) this.atas = data;
+        },
+
+        async cargarBancos() {
+            try {
+                const { data, error } = await sb.from('bancos').select('id, nombre, descripcion, slug').order('nombre');
+                if (error) throw error;
+                if (data) {
+                    this.listaBancos = data;
+                    console.log('✅ Bancos cargados:', data.length);
+                }
+            } catch (e) {
+                console.error('❌ Error cargando bancos:', e);
+                this.showToast('Error cargando bancos de preguntas', 'error');
+                this.listaBancos = []; // Fallback to empty array
+            }
         },
 
         checkLocalStorage() {
@@ -191,6 +204,7 @@ function app() {
         // --- SELECCIÓN DE BANCO ---
         seleccionarBanco(id) {
             this.bancoSeleccionado = id;
+            this.ataSeleccionado = ''; // 🆕 Reset ATA when changing banks
             this.vista = 'menu';
             localStorage.setItem('b787_banco_actual', id);
         },
@@ -220,23 +234,28 @@ function app() {
             this.vista = 'cargando';
             this.mensajeCarga = 'Preparando taller...';
 
-            // TODO: Filtrar por bancoSeleccionado cuando se implementen tablas separadas
-            // const banco = this.bancoSeleccionado;
+            // 🛡️ VALIDATION: Ensure a bank is selected
+            if (!this.bancoSeleccionado) {
+                this.showToast('Por favor, selecciona un banco primero', 'error');
+                this.vista = 'seleccion_banco';
+                return;
+            }
 
             this.modo = (entrada === 'nuevas' || entrada === 'fallos') ? entrada : 'ata';
             this.resetStats();
 
             try {
                 let rpc = this.modo === 'fallos' ? 'repasar_falladas' : 'estudiar_preguntas';
-                let params = {};
+                let params = { p_banco_id: this.bancoSeleccionado }; // 🆕 Always pass banco_id
 
                 if (this.modo === 'nuevas') {
-                    params = { filtro_ata_id: null };
+                    params.filtro_ata_id = null;
                 } else if (this.modo === 'ata') {
                     const ataIdNumerico = parseInt(entrada);
-                    params = { filtro_ata_id: ataIdNumerico };
+                    params.filtro_ata_id = ataIdNumerico;
                 }
 
+                console.log('📡 Cargando preguntas con params:', params);
                 const { data, error } = await sb.rpc(rpc, params);
 
                 if (error) throw error;

@@ -134,7 +134,7 @@
                     Proyecto B787 <span class="text-blue-600">Escalafón</span>
                 </h1>
                 <p class="text-gray-500 text-sm font-medium tracking-wide uppercase" 
-                   x-text="bancos.find(b => b.id === bancoSeleccionado)?.nombre || 'Plataforma de Escalafón Técnico'"></p>
+                   x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre || 'Plataforma de Escalafón Técnico'"></p>
             </div>
 
             <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
@@ -224,13 +224,19 @@
                     <p class="text-gray-600 text-sm">Elige el área técnica que deseas practicar</p>
                 </div>
 
+
                 <div class="grid md:grid-cols-3 gap-6">
-                    <template x-for="banco in bancos" :key="banco.id">
+                    <template x-for="banco in listaBancos" :key="banco.id">
                         <button @click="seleccionarBanco(banco.id)"
-                            class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left p-8 flex flex-col items-center">
+                            class="group relative overflow-hidden rounded-2xl bg-white border transition-all duration-300 text-left p-8 flex flex-col items-center"
+                            :class="{
+                                'border-gray-200 hover:border-blue-600 hover:shadow-lg': bancoSeleccionado !== banco.id,
+                                'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500 shadow-lg': bancoSeleccionado === banco.id
+                            }">
                             
-                            <div class="text-6xl mb-4 group-hover:scale-110 transition-transform duration-300" 
-                                 x-text="banco.icono"></div>
+                            <div class="text-6xl mb-4 transition-transform duration-300" 
+                                 :class="bancoSeleccionado === banco.id ? 'scale-110' : 'group-hover:scale-110'"
+                                 x-text="banco.slug"></div>
                             
                             <h3 class="text-xl font-bold text-gray-900 mb-2 text-center" 
                                 x-text="banco.nombre"></h3>
@@ -238,8 +244,10 @@
                             <p class="text-gray-600 text-sm text-center leading-relaxed" 
                                x-text="banco.descripcion"></p>
                             
-                            <div class="mt-6 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                                Seleccionar <span class="ml-2">→</span>
+                            <div class="mt-6 flex items-center font-bold text-sm transition-transform"
+                                 :class="bancoSeleccionado === banco.id ? 'text-blue-600 translate-x-2' : 'text-gray-400 group-hover:text-blue-600 group-hover:translate-x-2'">
+                                <span x-text="bancoSeleccionado === banco.id ? 'Seleccionado' : 'Seleccionar'"></span>
+                                <span class="ml-2">→</span>
                             </div>
                         </button>
                     </template>
@@ -337,7 +345,7 @@
                 <h3 class="text-3xl font-black text-gray-900 mb-4">Próximamente</h3>
                 <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
                     Estamos preparando el contenido técnico para <br>
-                    <span class="font-bold text-blue-600 text-xl" x-text="bancos.find(b => b.id === bancoSeleccionado)?.nombre"></span>.
+                    <span class="font-bold text-blue-600 text-xl" x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre"></span>.
                 </p>
                 <div class="mt-8 p-4 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium border border-blue-100">
                     🔔 Te notificaremos cuando esté disponible.
