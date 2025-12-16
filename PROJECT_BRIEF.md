@@ -16,7 +16,7 @@ El proceso de ascenso y mejora profesional requiere dominar grandes volúmenes d
 
 Para considerar el proyecto "Terminado v1.0", la aplicación debe cumplir estrictamente con:
 
-### A. Soporte Multi-Banco (Crítico)
+### A. Soporte Multi-Banco (Crítico) ✅ **COMPLETADO**
 
 El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar tres bancos de preguntas independientes:
 
@@ -24,18 +24,18 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar tres
 2.  **Inglés Técnico**: Terminología aeronáutica.
 3.  **AMOS**: Uso del software de gestión de mantenimiento.
 
-> **Nota:** El usuario debe seleccionar el banco al inicio de la sesión. No se deben mezclar preguntas de bancos distintos en una misma ronda de estudio.
+> **Estado:** ✅ Implementado. Bancos se cargan dinámicamente desde tabla `bancos` en Supabase. RPCs filtran preguntas por `p_banco_id`. UI proporciona feedback visual de selección.
 
-### B. Refactorización y Profesionalización
+### B. Refactorización y Profesionalización ✅ **COMPLETADO**
 
-- **Limpieza de Código**: Eliminar deuda técnica, comentarios `TODO` obsoletos y estandarizar nomenclatura.
-- **Desacople UI/Lógica**: Mover las clases de estilos (Tailwind) fuera de la lógica de JavaScript (Alpine.js) para mejorar la mantenibilidad.
-- **Corrección de Textos**: Revisión ortográfica y gramatical de la interfaz ("Professional Polish").
+- **Limpieza de Código**: ✅ Eliminados comentarios `TODO`, estandarizada nomenclatura.
+- **Desacople UI/Lógica**: ✅ Clases de estilos movidas a directivas `:class` en HTML. Eliminadas funciones `claseBoton()` y `estiloLetra()`.
+- **Corrección de Textos**: ⏳ Pendiente de revisión final.
 
-### C. Gestión de Contenidos
+### C. Gestión de Contenidos ⏳ **PARCIAL**
 
 - **Ingesta**: La carga de datos se mantendrá vía **CSV/Importación directa a Supabase** (no se desarrollará panel de admin en el MVP).
-- **Estructura**: La base de datos debe ser agnóstica al contenido (una estructura flexible que sirva para los 3 bancos).
+- **Estructura**: ✅ La base de datos es agnóstica al contenido (estructura flexible para 3 bancos implementada).
 
 ---
 

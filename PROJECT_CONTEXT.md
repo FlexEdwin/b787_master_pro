@@ -103,15 +103,15 @@ El backend delega lógica compleja a funciones de base de datos para seguridad y
 ### ✅ Lo que Funciona
 
 - **Autenticación**: Login funcional con Supabase y persistencia de sesión. Modo Invitado implementado.
+- **Multi-Banco Completo**: Sistema de bancos dinámico cargado desde BD. Filtrado de preguntas por banco seleccionado mediante parámetro `p_banco_id` en RPCs. Feedback visual de selección con estados reactivos.
 - **Ciclo de Quiz**: Carga de preguntas, selección de respuestas, feedback visual (verde/rojo), transición entre preguntas.
-- **Lógica de Negocio**: Randomización de opciones (Fisher-Yates) para evitar memoria visual de posición. Mapeo "Visual vs Real" robusto.
+- **Lógica de Negocio**: Randomización de opciones (Fisher-Yates) para evitar memoria visual de posición. Mapeo "Visual vs Real" robusto. Reset automático de ATA al cambiar de banco.
 - **Estadísticas**: Feedback inmediato de racha, correctas/incorrectas y gráfico final con Chart.js.
 - **Persistencia Local**: Recuperación de sesión (si cierras el navegador en medio de un quiz) usando `localStorage`.
+- **Arquitectura Limpia**: CSS lógico desacoplado de JavaScript. Estilos declarados en HTML usando directivas `:class` de Alpine.js.
 
-### ⚠️ Estado "A Medias" / Deuda Técnica
+### ⚠️ Deuda Técnica Restante
 
-- **Multi-Banco incompleto**: La UI muestra opciones para "Inglés Técnico" y "AMOS", pero el código tiene un `TODO` explícito: `// TODO: Filtrar por bancoSeleccionado...`. Actualmente, todo carga del mismo pool de datos (presumiblemente B787).
-- **CSS en JS**: Alpine.js maneja clases dinámicas complejas dentro de `app.js` (`claseBoton`, `estiloLetra`), lo que acopla lógica y presentación fuertemente.
 - **Gestión de Dependencias**: Las librerías de vendor (alpine, supabase, etc.) se bajan con `curl` en un script npm custom, en lugar de usar un bundler estándar, lo que dificulta la gestión de versiones y tree-shaking.
 
 ---

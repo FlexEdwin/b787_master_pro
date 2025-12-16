@@ -55,6 +55,11 @@
 - El sistema ahora filtra preguntas por banco seleccionado
 - Los ATAs se resetean al cambiar de contexto (previene inconsistencias)
 
+**DOCUMENTACIÓN ACTUALIZADA:**
+
+- ✅ `PROJECT_CONTEXT.md`: Actualizado estado actual para reflejar Multi-Banco completo y CSS desacoplado
+- ✅ `PROJECT_BRIEF.md`: Marcados objetivos MVP A y B como completados
+
 ---
 
 ### [FECHA DE HOY] - INICIO DE REFACTORIZACIÓN
