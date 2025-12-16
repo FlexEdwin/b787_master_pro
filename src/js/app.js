@@ -434,51 +434,7 @@ function app() {
             return this.preguntaActual['opcion_' + letraReal.toLowerCase()];
         },
 
-        // --- CLASES CSS DINÁMICAS ---
-        claseBoton(letraVisual) {
-            // Estado Normal: Fondo blanco, borde gris
-            if (!this.bloqueado) return 'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer';
-
-            // Traducir Visual -> Real para comparar con la respuesta correcta
-            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
-            const letraReal = this.ordenOpciones[indiceVisual];
-
-            const correcta = this.preguntaActual.correcta?.toUpperCase();
-            const seleccionadaVisual = this.seleccionada; // La letra visual que clickeó el usuario
-            
-            // Para saber si ESTE botón visual corresponde a la respuesta correcta:
-            // ¿La letra real detrás de este botón es la correcta?
-            const esEsteBotonCorrecto = (letraReal === correcta);
-
-            // Para saber si ESTE botón visual fue el seleccionado incorrectamente:
-            // ¿Fue este el botón visual clickeado? Y ¿No era el correcto?
-            const esEsteBotonSeleccionado = (letraVisual === seleccionadaVisual);
-
-            // Respuesta Correcta (Siempre se ilumina en verde, haya sido clickeada o no)
-            if (esEsteBotonCorrecto)
-                return 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500';
-
-            // Selección Incorrecta (Se ilumina en rojo si el usuario clickeó este)
-            if (esEsteBotonSeleccionado && !esEsteBotonCorrecto)
-                return 'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500';
-
-            // Resto: Desvanecido
-            return 'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed';
-        },
-
-        estiloLetra(letraVisual) {
-            // Traducir Visual -> Real
-            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
-            const letraReal = this.ordenOpciones[indiceVisual];
-            const correcta = this.preguntaActual.correcta?.toUpperCase();
-
-            if (this.bloqueado) {
-                if (letraReal === correcta) return 'bg-emerald-600 text-white';
-                if (letraVisual === this.seleccionada) return 'bg-red-600 text-white';
-                return 'bg-gray-200 text-gray-400';
-            }
-            // Estado Normal
-            return 'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white';
-        }
+        // --- CSS Logic moved to HTML :class directives ---
+        // claseBoton() and estiloLetra() removed - see index.html button :class bindings
     }
 }

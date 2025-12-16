@@ -408,13 +408,24 @@
                     <h2 class="text-xl md:text-2xl font-bold text-gray-900 leading-relaxed mb-8"
                         x-text="preguntaActual?.texto"></h2>
 
+
                     <div class="grid gap-4">
                         <!-- Opción A -->
                         <button @click="responder('A')" :disabled="bloqueado" x-show="obtenerTextoOpcion('A')"
                             class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="claseBoton('A')">
+                            :class="{
+                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
+                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[0] === preguntaActual.correcta?.toUpperCase(),
+                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase(),
+                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase()
+                            }">
                             <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="estiloLetra('A')">A</div>
+                                :class="{
+                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
+                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[0] === preguntaActual.correcta?.toUpperCase(),
+                                    'bg-red-600 text-white': bloqueado && seleccionada === 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase(),
+                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase()
+                                }">A</div>
                             <span
                                 class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
                                 x-text="obtenerTextoOpcion('A')"></span>
@@ -423,9 +434,19 @@
                         <!-- Opción B -->
                         <button @click="responder('B')" :disabled="bloqueado" x-show="obtenerTextoOpcion('B')"
                             class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="claseBoton('B')">
+                            :class="{
+                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
+                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[1] === preguntaActual.correcta?.toUpperCase(),
+                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase(),
+                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase()
+                            }">
                             <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="estiloLetra('B')">B</div>
+                                :class="{
+                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
+                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[1] === preguntaActual.correcta?.toUpperCase(),
+                                    'bg-red-600 text-white': bloqueado && seleccionada === 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase(),
+                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase()
+                                }">B</div>
                             <span
                                 class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
                                 x-text="obtenerTextoOpcion('B')"></span>
@@ -434,9 +455,19 @@
                         <!-- Opción C -->
                         <button @click="responder('C')" :disabled="bloqueado" x-show="obtenerTextoOpcion('C')"
                             class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="claseBoton('C')">
+                            :class="{
+                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
+                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[2] === preguntaActual.correcta?.toUpperCase(),
+                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase(),
+                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase()
+                            }">
                             <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="estiloLetra('C')">C</div>
+                                :class="{
+                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
+                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[2] === preguntaActual.correcta?.toUpperCase(),
+                                    'bg-red-600 text-white': bloqueado && seleccionada === 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase(),
+                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase()
+                                }">C</div>
                             <span
                                 class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
                                 x-text="obtenerTextoOpcion('C')"></span>
@@ -445,9 +476,19 @@
                         <!-- Opción D -->
                         <button @click="responder('D')" :disabled="bloqueado" x-show="obtenerTextoOpcion('D')"
                             class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="claseBoton('D')">
+                            :class="{
+                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
+                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[3] === preguntaActual.correcta?.toUpperCase(),
+                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase(),
+                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase()
+                            }">
                             <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="estiloLetra('D')">D</div>
+                                :class="{
+                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
+                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[3] === preguntaActual.correcta?.toUpperCase(),
+                                    'bg-red-600 text-white': bloqueado && seleccionada === 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase(),
+                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase()
+                                }">D</div>
                             <span
                                 class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
                                 x-text="obtenerTextoOpcion('D')"></span>
