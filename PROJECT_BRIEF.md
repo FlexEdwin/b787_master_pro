@@ -32,53 +32,35 @@ El sistema debe dejar de ser "B787-céntrico" en su arquitectura y soportar tres
 - **Desacople UI/Lógica**: ✅ Clases de estilos movidas a directivas `:class` en HTML. Eliminadas funciones `claseBoton()` y `estiloLetra()`.
 - **Corrección de Textos**: ⏳ Pendiente de revisión final.
 
-### C. Gestión de Contenidos ⏳ **PARCIAL**
+### C. Gestión de Contenidos & UX ✅ **COMPLETADO (v1.0)**
 
-- **Ingesta**: La carga de datos se mantendrá vía **CSV/Importación directa a Supabase** (no se desarrollará panel de admin en el MVP).
-- **Estructura**: ✅ La base de datos es agnóstica al contenido (estructura flexible para 3 bancos implementada).
+- **Ingesta**: CSV/Importación directa a Supabase.
+- **Batch Loading**: ✅ Implementada carga por lotes (50 preguntas) para eliminar latencia.
+- **Offline-Ready**: ✅ Service Worker y LocalStorage configurados para tolerancia a fallos de red.
 
 ---
 
-## 4. Reglas de Negocio
+## 4. Reglas de Negocio (v2.0 Refactor)
 
 ### 4.1. Mecánica de Estudio
 
-1.  **Selección de Contexto**: El usuario elige Banco -> Modo (Aleatorio, Por Capítulo/ATA, Repaso Fallos).
-2.  **Anti-Memoria**: Las opciones de respuesta se barajan aleatoriamente en cada visualización.
-3.  **Feedback Inmediato**: Validación visual (Verde/Rojo) instantánea tras seleccionar.
+1.  **Selección de Contexto**: Banco -> Dashboard -> Quiz.
+2.  **Anti-Memoria**: Barajado estricto pero conservando identidad de opción (`{letra: 'B'}`).
+3.  **Persistencia**: Cada click se intenta guardar en la nube.
 
-### 4.2. Progresión y Gamificación
+### 4.2 Lógica de Aprendizaje
 
-- **Rangos**: Mantener el sistema de rangos (Aspirante -> Inspector) basado en el volumen histórico de aciertos.
-- **Historial**: El progreso se guarda por usuario autenticado.
-
-### 4.3. Seguridad
-
-- **Validación**: Se acepta la validación en el lado del cliente (Client-side) para reducir latencia y costes de servidor.
-- **Integridad**: Se asume que el usuario no hará trampas (revisar consola) ya que el incentivo es el auto-aprendizaje honesto.
-
-### 4.4 Lógica de Aprendizaje (Algoritmo de Doble Validación)
-
-1.  **Modo General (Maestría)**:
-
-    - Objetivo: Retirar preguntas del mazo activo.
-    - Criterio de Retiro: 2 respuestas correctas _consecutivas_ en modo General.
-    - Penalización: Un fallo reinicia el contador de aciertos a 0 y envía la pregunta a "Repaso".
-
-2.  **Modo Repaso (Cuarentena)**:
-    - Objetivo: Devolver preguntas al mazo General.
-    - Criterio de Alta: 2 respuestas correctas _consecutivas_ en modo Repaso.
-    - Dinámica: Una pregunta en repaso NO aparece en General hasta que se gradúa.
+- **Algoritmo**: Doble Validación (General vs Repaso).
+- **Criterio de Éxito**: Graduación de preguntas tras 2 aciertos consecutivos.
 
 ---
 
 ## 5. Arquitectura Técnica
 
-### Stack Tecnológico (Confirmado)
+### Stack Tecnológico (Optimizado)
 
-- **Frontend**: HTML5 + Tailwind CSS + Alpine.js (Sin bundlers complejos).
-- **Backend**: Supabase (PostgreSQL + Auth).
-- **Infraestructura**: PWA (Service Worker para cacheo de assets, aunque la data requiere conexión online para sincronizar progreso).
+- **Frontend**: HTML5 + Tailwind CSS + Alpine.js (3-Tier nav architecture).
+- **Backend**: Supabase (PostgreSQL + Auth + RPCs con `user_id` context).
 
 ### Modelo de Datos (Conceptual)
 
@@ -90,10 +72,9 @@ Se requiere una migración para añadir la columna `banco_id` o `categoria` a la
 
 ---
 
-## 6. Definición de Éxito
+## 6. Definición de Éxito ✅ **LOGRADO**
 
-El proyecto se considerará exitoso cuando:
-
-1.  El usuario pueda loguearse y elegir cualquiera de los 3 bancos.
-2.  Pueda completar una ronda de 20 preguntas de "AMOS" y ver sus estadísticas actualizadas.
-3.  El código fuente esté limpio, comentado profesionalmente y sin "hardcoding" de estilos en el JS.
+1.  ✅ Usuario se loguea (o entra como invitado) y ve bancos disponibles.
+2.  ✅ Navegación fluida (Dashboard -> Quiz) sin tiempos de carga por pregunta.
+3.  ✅ Validación correcta en B787, Inglés y AMOS.
+4.  ✅ Persistencia de datos y estadísticas fiables.

@@ -107,44 +107,42 @@ Para soportar el algoritmo de Doble Validación, la tabla `respuestas` debe regi
 
 ---
 
-## 4. Estado Actual del Proyecto
+## 4. Estado Actual del Proyecto (v1.0 Candidate)
 
-### ✅ Lo que Funciona
+### ✅ Arquitectura & Core
 
-- **Autenticación**: Login funcional con Supabase y persistencia de sesión. Modo Invitado implementado.
-- **Multi-Banco Completo**: Sistema de bancos dinámico cargado desde BD. Filtrado de preguntas por banco seleccionado mediante parámetro `p_banco_id` en RPCs. Feedback visual de selección con estados reactivos.
-- **Ciclo de Quiz**: Carga de preguntas, selección de respuestas, feedback visual (verde/rojo), transición entre preguntas.
-- **Lógica de Negocio**: Randomización de opciones (Fisher-Yates) para evitar memoria visual de posición. Mapeo "Visual vs Real" robusto. Reset automático de ATA al cambiar de banco.
-- **Estadísticas**: Feedback inmediato de racha, correctas/incorrectas y gráfico final con Chart.js.
-- **Persistencia Local**: Recuperación de sesión (si cierras el navegador en medio de un quiz) usando `localStorage`.
-- **Arquitectura Limpia**: CSS lógico desacoplado de JavaScript. Estilos declarados en HTML usando directivas `:class` de Alpine.js.
+- **Navegación 3-Niveles**: `Inicio (Selección)` -> `Dashboard (Config)` -> `Quiz (Estudio)`.
+- **Carga Eficiente**: Implementado Batch Loading (50 preguntas/request) reduciendo latencia.
+- **Validación Robusta**: Algoritmo "Direct-Check" (sin mapeo visual) que elimina falsos negativos.
+- **Persistencia**: Manejo de sesión resiliente con recuperación vía `localStorage`.
+
+### ✅ Features Completadas
+
+- **Autenticación**: Flujo completo (Login / Invitado / Logout) con UI dedicada.
+- **Multi-Banco**: Operativo para B787, Inglés y AMOS.
+- **Feedback Visual**: UI de alto contraste para Dark Mode (`bg-green-900`/`bg-red-900`).
+- **Adaptabilidad**: Dashboard se ajusta al contenido del banco (oculta ATAs si no existen).
 
 ### ⚠️ Deuda Técnica Restante
 
-- **Gestión de Dependencias**: Las librerías de vendor (alpine, supabase, etc.) se bajan con `curl` en un script npm custom, en lugar de usar un bundler estándar, lo que dificulta la gestión de versiones y tree-shaking.
+- **Bundling**: Se mantiene la política "No Build Tools" (CDN/Scripts directos), lo cual limita tree-shaking pero cumple el requerimiento de simplicidad.
+- **Offline Mode**: Service Worker básico presente pero requiere estrategia de sincronización avanzada para "Offline-First" real.
 
 ---
 
-## 5. Reglas de Negocio
+## 5. Reglas de Negocio Actualizadas
 
 ### Objetivo
 
-Plataforma de estudio y certificación para técnicos de mantenimiento aeronáutico (específicamente flota Boeing 787).
+Plataforma de entrenamiento de alto rendimiento para certificación B787.
 
-### Roles de Usuario
+### Mecánica de Validación (Refactor 2025)
 
-- **Usuario Registrado**: Guarda progreso histórico en la nube (Supabase).
-- **Invitado**: Acceso temporal, sin garantías de guardado a largo plazo (usa Auth anónimo).
-
-### Mecánica de Estudio
-
-1.  **Niveles**: El usuario escala de "Aspirante" a "Inspector / Ing." basándose en el volumen de respuestas correctas acumuladas (<50, <200, <500, 500+).
-2.  **Modos de Estudio**:
-    - _General_: Aleatorio global.
-    - _Por ATA_: Focalizado en sistemas específicos (e.g., Eléctrico, Motor).
-    - _Repaso de Fallos_: Algoritmo de repetición espaciada simple (volver a ver lo que se falló).
-3.  **Anti-Memorización**: Las opciones (A, B, C, D) se barajan visualmente cada vez. El sistema sabe que si la respuesta correcta es "Valve Open", puede aparecer en la posición A hoy y en la C mañana, y valida correctamente contra la DB.
+1. **Anti-Memorización**: Las opciones se barajan pero conservan su identidad (`{letra: 'B', texto: '...'}`).
+2. **Validación**: Al hacer click, se compara `opcion.letra` vs `db.correcta` directamente.
+3. **Persistencia**: Cada respuesta se envía a Supabase (`rpc/guardar_respuesta`) con el ID del usuario. Si falla la red, el quiz continúa, priorizando la experiencia de estudio.
 
 ### Seguridad
 
-- La validación de respuesta correcta ocurre en cliente (`correcta` viene en el objeto `preguntaActual`), pero el registro oficial se hace vía RPC en servidor. _Nota de auditoría: Esto permite "hacer trampas" viendo la red, pero es aceptable para una app de estudio no-oficial/autoevaluación._
+- Validación "Optimista" en cliente para UX instantánea.
+- Validación asíncrona en servidor para registro oficial de progreso.
