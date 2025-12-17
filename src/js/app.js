@@ -431,41 +431,42 @@ volverAlDashboard() {
             }
         },
 
-        async responder(letraVisual) {
+        async responder(letra) {
             if (this.bloqueado) return;
             this.bloqueado = true;
-            this.seleccionada = letraVisual;
+            this.seleccionada = letra;
 
-            // TRADUCCIÓN: Letra Visual (Botón Clickeado) -> Letra Real (DB)
-            // Ejemplo: Si ordenOpciones es ['C', 'A', 'D', 'B']
-            // Click en botón 0 ('A') -> Real 'C'
-            const indiceVisual = ['A', 'B', 'C', 'D'].indexOf(letraVisual);
-            const letraReal = this.ordenOpciones[indiceVisual];
+            // 1. NORMALIZACIÓN Y DIAGNÓSTICO
+            const seleccion = String(letra).trim().toUpperCase();
+            const correcta = String(this.preguntaActual.correcta).trim().toUpperCase();
+            const esCorrecta = seleccion === correcta;
 
-            const esCorrecta = letraReal === this.preguntaActual.correcta;
+            console.log('🔍 Validando:', { 
+                seleccion: seleccion, 
+                correctaDB: correcta, 
+                esCorrecta: esCorrecta,
+                preguntaID: this.preguntaActual.id
+            });
 
-            // 💾 PERSISTENCIA PRIMERO (Critical Path)
+            // 💾 2. PERSISTENCIA ROBUSTA (Fall-safes)
             try {
-                // EXTRACCIÓN ROBUSTA DE ID
                 const uid = this.auth.user?.id;
-                if (!uid) console.error("CRITICAL: No User ID detected for RPC save");
-
-                // Solo guardamos si hay usuario (aunque la lógica RPC lo maneja)
-                // Usamos await obligatorio
+                
+                // Intentamos guardar, pero si falla no detenemos el quiz
                 await sb.rpc('guardar_respuesta', {
                     p_pregunta_id: this.preguntaActual.id,
                     p_es_correcta: esCorrecta,
                     p_banco_id: this.bancoSeleccionado || 'b787',
                     p_modo_estudio: this.modoEstudio,
-                    p_user_id: uid // <--- ESTO ES LO QUE ARREGLA EL REPASO
+                    p_user_id: uid 
                 });
                 console.log('💾 Respuesta guardada en DB');
             } catch (e) {
-                console.error('❌ Error guardando respuesta:', e);
-                // No bloqueamos la UI por error de guardado, pero lo logueamos
+                console.error('⚠️ Error no bloqueante guardando respuesta:', e);
+                // RPC Error 404/500 ignorado para continuidad del usuario
             }
 
-            // --- ACTUALIZACIÓN VISUAL ---
+            // 3. ACTUALIZACIÓN VISUAL (ESTADO)
             if (esCorrecta) {
                 this.stats.correctas++;
                 this.stats.racha++;
@@ -474,9 +475,9 @@ volverAlDashboard() {
                 this.stats.racha = 0;
             }
 
-            // --- RETROALIMENTACIÓN DB ---
             this.guardarEstadoLocal();
 
+            // 4. NAVEGACIÓN
             if (esCorrecta) {
                 setTimeout(() => this.siguientePregunta(), 1000);
             } else {
@@ -518,7 +519,8 @@ volverAlDashboard() {
 
         // --- UTILIDADES Y AUXILIARES ---
         mezclarOpciones(retornar = false) {
-            // 1. Obtener opciones crudas FILTRANDO VACÍAS / NULL / UNDEFINED
+            // 1. Obtener opciones crudas FILTRANDO VACÍAS
+            // IMPORTANTE: Mantenemos la letra ORIGINAL de la DB (A,B,C,D)
             const raw = [
                 { letra: 'A', texto: this.preguntaActual.opcion_a },
                 { letra: 'B', texto: this.preguntaActual.opcion_b },
@@ -526,32 +528,17 @@ volverAlDashboard() {
                 { letra: 'D', texto: this.preguntaActual.opcion_d }
             ].filter(o => o.texto && o.texto.trim() !== '' && o.texto !== 'null');
 
-            // 2. Crear array de identificadores reales disponibles (ej: ['A', 'B', 'C'])
-            let disponibles = raw.map(r => r.letra);
-
-            // 3. Algoritmo Fisher-Yates para mezclar los disponibles
-            for (let i = disponibles.length - 1; i > 0; i--) {
+            // 2. Barajar directamente el array de objetos
+            for (let i = raw.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [disponibles[i], disponibles[j]] = [disponibles[j], disponibles[i]];
+                [raw[i], raw[j]] = [raw[j], raw[i]];
             }
             
-            // 4. Mapear: Visual (A,B,C...) -> Real (Mezclado)
-            // IMPORTANTE: visualLetters debe coincidir en longitud con las disponibles
-            const visualLetters = ['A', 'B', 'C', 'D'].slice(0, disponibles.length);
-            
-            const opcionesMapeadas = visualLetters.map((letraVisual, index) => {
-                const letraReal = disponibles[index];
-                return {
-                    letra: letraVisual, // Visual: A, B, C (secuencial)
-                    texto: this.obtenerTextoOpcion(letraReal), // Contenido: mezclado
-                    real: letraReal // Guardamos la real para referencia
-                };
-            });
+            // 3. Asignar directamente (Sin re-mapeo visual A,B,C,D)
+            // Esto significa que los botones mostrarán su letra real (ej: C, A, B)
+            this.opcionesActuales = raw;
 
-            this.opcionesActuales = opcionesMapeadas;
-            this.ordenOpciones = disponibles;
-
-            if (retornar) return disponibles;
+            if (retornar) return raw;
         },
 
         guardarEstadoLocal() {

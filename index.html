@@ -252,8 +252,8 @@
                                 class="w-full p-4 rounded-xl text-left transition-all duration-200 border-2 relative group"
                                 :class="{
                                     'border-slate-700 hover:bg-slate-700/50 hover:border-slate-600': !bloqueado,
-                                    'bg-green-500/10 border-green-500 text-green-400': bloqueado && opcion.letra === preguntaActual.correcta,
-                                    'bg-red-500/10 border-red-500 text-red-400': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta,
+                                    'bg-green-900/50 border-green-500 text-white': bloqueado && opcion.letra === preguntaActual.correcta,
+                                    'bg-red-900/50 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta,
                                     'opacity-50 border-slate-800': bloqueado && opcion.letra !== preguntaActual.correcta && seleccionada !== opcion.letra
                                 }">
                             

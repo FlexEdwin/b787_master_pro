@@ -437,3 +437,18 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - Adiós a botones vacíos.
 - Modo Repaso 100% funcional.
+
+### [2025-12-17] - REFACTOR: Validación Simplificada & UX 🔍🟢
+
+**PROBLEMA: "Falsos Negativos" Persistentes**
+
+- **Diagnóstico:** La lógica de re-mapeo visual (`letraVisual -> index -> letraReal`) era propensa a desincronización y compleja de mantener.
+- **Solución:** Simplificación radical. Ahora `mezclarOpciones` baraja los objetos manteniendo su letra ORIGINAL de DB (A,B,C,D). `responder(letra)` compara directamente la letra del objeto con `pregunta.correcta`.
+- **Beneficio:** 0% de probabilidad de error de mapeo. "What you click is what you validate".
+
+**MEJORAS UX:**
+
+- **Feedback Visual:** Se aumentó drásticamente el contraste en los estados de acierto/error para Dark Mode.
+  - Acierto: `bg-green-900/50` (antes verde sutil)
+  - Error: `bg-red-900/50` (antes rojo sutil)
+- **Tolerancia a Fallos:** Si la RPC `guardar_respuesta` falla (ej: error de red), el quiz NO se bloquea, permitiendo al usuario seguir estudiando. Consola muestra el error pero la UI avanza.
