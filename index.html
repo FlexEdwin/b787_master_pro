@@ -407,24 +407,30 @@
                 </div>
             </div>
 
-            <!-- CONTENIDO OTROS BANCOS (PRÓXIMAMENTE) -->
-            <div x-show="bancoSeleccionado !== 'b787'" class="flex flex-col items-center justify-center text-center h-full py-12 animate-float">
-                <div class="text-8xl mb-6 filter drop-shadow-md">🚧</div>
-                <h3 class="text-3xl font-black text-gray-900 mb-4">Próximamente</h3>
-                <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
-                    Estamos preparando el contenido técnico para <br>
-                    <span class="font-bold text-blue-600 text-xl" x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre"></span>.
-                </p>
-                <div class="mt-8 p-4 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium border border-blue-100">
-                    🔔 Te notificaremos cuando esté disponible.
-                </div>
-            </div>
-            
             <!-- Botón Volver a Bancos -->
             <button @click="cambiarBanco()" 
                     class="mt-8 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
                 <span>←</span> Cambiar Banco de Preguntas
             </button>
+        </div>
+
+        <!-- VISTA: EMPTY STATE (Próximamente / Sin Preguntas) -->
+        <div x-show="vistaActual === 'quiz' && preguntas.length === 0" 
+             class="flex-1 flex flex-col items-center justify-center text-center py-12 animate-float">
+            <div class="text-8xl mb-6 filter drop-shadow-md">🚧</div>
+            <h3 class="text-3xl font-black text-gray-900 mb-4">Próximamente</h3>
+            <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
+                Estamos preparando el contenido técnico para esta sección.
+            </p>
+            <div class="mt-8 p-4 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium border border-blue-100">
+                🔔 Te notificaremos cuando esté disponible.
+            </div>
+            <button @click="volverAlDashboard()" class="mt-6 text-blue-600 font-bold hover:underline">
+                Volver al Dashboard
+            </button>
+        </div>
+            
+
         </div>
 
         <!-- VISTA: QUIZ -->

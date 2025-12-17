@@ -263,3 +263,21 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - Sistema estable con navegación de 3 niveles funcionando.
 - Header visible en todas las pantallas.
+
+### [2025-12-17] - HOTFIX: Dashboard Blocked by Placeholder 🛠️
+
+**PROBLEMA:**
+
+- El bloque "Próximamente" (destinado a bancos vacíos) aparecía por defecto en el Dashboard, bloqueando la vista de las tarjetas.
+- Condición original `bancoSeleccionado !== 'b787'` era evaluada incorrectamente durante la transición de estado.
+
+**SOLUCIÓN:**
+
+- **Reubicación:** Se movió el bloque "Próximamente" FUERA del contenedor del Dashboard (`index.html`). Ahora es un hermano directo.
+- **Condición Estricta:** Se actualizó la directiva a `x-show="vistaActual === 'quiz' && preguntas.length === 0"`.
+- **Propósito:** Ahora funciona como un "Empty State" para el Quiz, en lugar de un placeholder genérico de banco.
+
+**RESULTADO:**
+
+- Dashboard carga limpio con las 3 tarjetas visibles.
+- "Próximamente" solo aparece si se intenta iniciar un quiz sin preguntas (edge case).
