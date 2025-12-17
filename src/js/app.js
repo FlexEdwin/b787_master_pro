@@ -11,6 +11,7 @@ function app() {
     return {
         // --- ESTADO GLOBAL ---
         vistaActual: 'cargando', // 🆕 BATCH LOADING: 'cargando' | 'login' | 'inicio' | 'dashboard' | 'quiz' | 'fin'
+        cargando: false, // 🆕 STATE: Global loading indicator
         mensajeCarga: 'Iniciando sistemas...',
         auth: { email: '', password: '', user: null },
         cargandoAuth: false,
@@ -57,6 +58,12 @@ function app() {
         get porcentajeAcierto() {
             const total = this.stats.correctas + this.stats.incorrectas;
             return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
+        },
+        get rachaActual() {
+            return this.stats ? this.stats.racha : 0; 
+        },
+        get fallosSesion() {
+            return this.stats ? this.stats.incorrectas : 0; 
         },
         get opcionesMezcladas() {
             if (!this.preguntaActual) return [];
@@ -238,6 +245,7 @@ async cargarAtas() {
         // --- SELECCIÓN DE BANCO ---
 async seleccionarBanco(id) {
     console.log('👆 Click en Banco ID:', id);
+    this.cargando = true;
     
     // 1. Actualizar Estado
     this.bancoSeleccionado = id;
@@ -254,6 +262,7 @@ async seleccionarBanco(id) {
     
     // 3. 🆕 BATCH: Navegamos al dashboard sin cargar preguntas
     this.vistaActual = 'dashboard';
+    this.cargando = false;
     console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
 },
 
@@ -265,6 +274,7 @@ async seleccionarBanco(id) {
 // 🆕 BATCH: Nueva función para iniciar quiz con configuración
 async comenzarQuiz(modo, ataId = null) {
     console.log('🎬 Iniciando quiz:', { modo, ataId });
+    this.cargando = true;
     
     // Setup mode
     this.modoEstudio = modo === 'repaso' ? 'repaso' : 'general';
@@ -285,6 +295,7 @@ async comenzarQuiz(modo, ataId = null) {
         this.vistaActual = 'quiz';
         console.log('✅ Quiz iniciado con', this.preguntas.length, 'preguntas');
     }
+    this.cargando = false;
 },
 
 // 🆕 BATCH: Función para volver al dashboard
@@ -322,13 +333,16 @@ volverAlDashboard() {
             });
 
             this.vistaActual = 'cargando';
+            this.cargando = true;
             this.mensajeCarga = 'Preparando taller...';
 
             // 🛡️ VALIDATION: Ensure a bank is selected
             if (!this.bancoSeleccionado) {
                 console.error('❌ No hay banco seleccionado');
                 this.showToast('Por favor, selecciona un banco primero', 'error');
+                this.showToast('Por favor, selecciona un banco primero', 'error');
                 this.vistaActual = 'inicio';
+                this.cargando = false;
                 return;
             }
 
@@ -403,6 +417,8 @@ volverAlDashboard() {
                 console.error(e);
                 this.showToast('Error cargando preguntas', 'error');
                 this.volverAlMenu();
+            } finally {
+                this.cargando = false;
             }
         },
 

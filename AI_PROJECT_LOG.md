@@ -300,3 +300,24 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - La lógica de Batch Loading (backend) ahora alimenta una interfaz moderna y responsiva (frontend).
 - 100% Funcional y acorde a especificaciones del cliente.
+
+### [2025-12-17] - HOTFIX: White Screen of Death (Alpine State) 🚑
+
+**ERROR CRÍTICO:**
+
+- `Alpine Expression Error: cargando is not defined`.
+- La UI no renderizaba nada (pantalla blanca) al referencias variables inexistentes en `app.js`.
+
+**SOLUCIÓN:**
+
+- **Estado Global:** Se añadieron las variables faltantes al store de Alpine:
+  - `cargando`: Booleano para control de spinners/empty states.
+  - `rachaActual` (Getter): Mapeado a `stats.racha`.
+  - `fallosSesion` (Getter): Mapeado a `stats.incorrectas`.
+- **Lógica Asíncrona:** Se actualizaron `seleccionarBanco`, `comenzarQuiz` y `cargarPreguntas` para gestionar correctamente el ciclo de vida de `this.cargando` (true/false).
+
+**ESTADO ACTUAL:**
+
+- Error de consola resuelto.
+- Los indicadores de carga ahora funcionan visualmente.
+- UI restaurada completamente.
