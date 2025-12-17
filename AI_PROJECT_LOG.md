@@ -281,3 +281,22 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 
 - Dashboard carga limpio con las 3 tarjetas visibles.
 - "Próximamente" solo aparece si se intenta iniciar un quiz sin preguntas (edge case).
+
+### [2025-12-17] - INTEGRACIÓN: Premium Visual Overhaul (Dark Mode) 🎨
+
+**CAMBIO MAYOR:**
+
+- Se ha actualizado la capa de presentación (`index.html`) a un diseño "Dark Mode Premium" (Slate-900).
+- Se ha re-alineado la lógica de `app.js` para soportar la nueva estructura DOM.
+
+**AJUSTES DE INTEGRACIÓN:**
+
+- **Variables de Estado:** Mapeo de `rachaActual` -> `stats.racha`, `session` -> `auth.user`, etc.
+- **Renderizado de Opciones:** Nueva propiedad computada `opcionesMezcladas` para soportar bucles limpios en UI.
+- **Estructura HTML:** Restauración de `<!DOCTYPE>`, `<head>` y CDN de Tailwind para cumplir con política de "No Build Tools".
+- **Navegación:** `x-init="initApp()"` restaurado para garantizar carga de datos automática.
+
+**RESULTADO:**
+
+- La lógica de Batch Loading (backend) ahora alimenta una interfaz moderna y responsiva (frontend).
+- 100% Funcional y acorde a especificaciones del cliente.

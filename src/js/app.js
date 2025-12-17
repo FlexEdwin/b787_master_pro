@@ -58,6 +58,13 @@ function app() {
             const total = this.stats.correctas + this.stats.incorrectas;
             return total === 0 ? 0 : Math.round((this.stats.correctas / total) * 100);
         },
+        get opcionesMezcladas() {
+            if (!this.preguntaActual) return [];
+            return ['A', 'B', 'C', 'D'].map(letra => ({
+                letra: letra,
+                texto: this.obtenerTextoOpcion(letra)
+            }));
+        },
         get nivelUsuario() {
             const score = this.stats.correctas;
             if (score < 50) return 'Aspirante';

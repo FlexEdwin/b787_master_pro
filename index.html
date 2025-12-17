@@ -1,653 +1,299 @@
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#ffffff">
-    <meta name="description" content="Professional certification platform for B787 technical training.">
-    <link rel="manifest" href="./manifest.json">
-    <title>B787 Certification Platform</title>
-
-    <!-- ESTILOS LOCALES -->
-    <link href="./output.css" rel="stylesheet">
-
-    <!-- SCRIPTS DE DEPENDENCIAS (Cargados desde local) -->
-    <script defer src="./alpine.js"></script>
-    <script src="./supabase.js"></script>
-    <script src="./chart.js"></script>
-    <script src="./confetti.js"></script>
-
-    <!-- Fuente Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B787 Escalafón | Premium</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Utilidades específicas que no están en Tailwind */
-        [x-cloak] {
-            display: none !important;
-        }
-
-        /* Animaciones */
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-5px);
-            }
-        }
-
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-5px);
-            }
-
-            75% {
-                transform: translateX(5px);
-            }
-        }
-
-        .shake {
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes pop {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.1);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
-        .pop {
-            animation: pop 0.3s ease-in-out;
-        }
-
-        /* Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f3f4f6;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-
-        /* Professional Card Styles */
-        .card {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-        }
+        [x-cloak] { display: none !important; }
+        body { font-family: 'Inter', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
+<body class="bg-slate-900 text-slate-200 font-sans antialiased min-h-screen flex flex-col"
+      x-data="app()" x-init="initApp()" @keydown.window="handleTeclado($event)">
 
-<body
-    class="bg-gray-50 text-gray-900 font-sans antialiased selection:bg-blue-600 selection:text-white min-h-screen flex flex-col">
-
-    <!-- Main App Container -->
-    <div x-data="app()" x-init="initApp()" @keydown.window="handleTeclado($event)"
-        class="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 md:p-6 relative" x-cloak>
-
-        <!-- TOAST -->
-        <div x-show="toast.visible" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-[-20px]" x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 translate-y-[-20px]"
-            class="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-xl border flex items-center gap-3 font-bold text-sm"
-            :class="toast.tipo === 'error' ? 'bg-red-50 text-red-800 border-red-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200'">
-            <span x-text="toast.mensaje"></span>
+    <!-- 1. HEADER GLOBAL (Siempre visible) -->
+    <nav class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3 cursor-pointer" @click="vistaActual = 'inicio'">
+                    <span class="text-2xl font-black tracking-tighter text-white">
+                        Proyecto <span class="text-blue-500">B787</span>
+                    </span>
+                    <span class="bg-blue-600/20 text-blue-400 text-xs font-bold px-2 py-1 rounded hidden sm:block">
+                        Escalafón
+                    </span>
+                </div>
+                <!-- Menú Usuario -->
+                <div class="flex items-center gap-4" x-show="auth.user">
+                    <button @click="vistaActual = 'inicio'" 
+                            class="text-sm text-slate-400 hover:text-white transition flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        <span class="hidden sm:inline">Cambiar Banco</span>
+                    </button>
+                    <div class="h-8 w-px bg-slate-700 mx-2"></div>
+                    <div class="flex flex-col items-end mr-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nivel Técnico</span>
+                        <span class="text-sm font-bold text-blue-400" x-text="nivelUsuario">Aspirante</span>
+                    </div>
+                    <button @click="logout" class="p-2 text-slate-400 hover:text-white transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
+                </div>
+            </div>
         </div>
+    </nav>
 
-        <!-- HEADER -->
-        <header 
-            class="mb-8 text-center md:text-left md:flex md:justify-between md:items-end border-b border-gray-200 pb-6">
-            <div>
-                <h1 class="text-3xl md:text-4xl font-black tracking-tight text-gray-900 mb-1">
-                    Proyecto B787 <span class="text-blue-600">Escalafón</span>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+
+        <!-- ========================================== -->
+        <!-- VISTA 1: INICIO (Selección de Banco)       -->
+        <!-- ========================================== -->
+        <section x-show="vistaActual === 'inicio'" class="space-y-8 animate-fade-in">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <h1 class="text-4xl font-black text-white mb-4 tracking-tight">
+                    Selecciona tu Banco de Estudio
                 </h1>
-                <p class="text-gray-500 text-sm font-medium tracking-wide uppercase" 
-                   x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre || 'Plataforma de Escalafón Técnico'"></p>
+                <p class="text-lg text-slate-400">
+                    Elige el área técnica que deseas practicar para acceder a las herramientas de certificación.
+                </p>
             </div>
 
-            <div x-show="auth.user" class="mt-4 md:mt-0 flex items-center gap-4 justify-center md:justify-end">
-                <!-- Botón Cambiar Banco (solo visible en dashboard) -->
-                <button x-show="vistaActual === 'dashboard'" @click="cambiarBanco()" 
-                        class="text-gray-500 hover:text-blue-600 text-sm font-medium transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                    </svg>
-                    Cambiar Banco
-                </button>
-                <div class="text-right hidden md:block">
-                    <p class="text-xs text-gray-500 uppercase font-bold">Nivel Técnico</p>
-                    <p class="text-blue-600 font-bold" x-text="nivelUsuario"></p>
-                </div>
-                <div
-                    class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-lg shadow-md border border-gray-200">
-                    🛠️</div>
-                <button @click="logout"
-                    class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-red-600 transition-colors"
-                    title="Cerrar Sesión">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                </button>
-            </div>
-        </header>
-
-        <!-- VISTA: LOADING -->
-        <div x-show="vistaActual === 'cargando'" class="flex-1 flex flex-col items-center justify-center">
-            <div class="relative w-20 h-20 mb-6">
-                <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
-                <div class="absolute inset-0 border-4 border-t-blue-600 rounded-full animate-spin"></div>
-            </div>
-            <p class="text-blue-600 font-mono text-sm tracking-widest uppercase animate-pulse" x-text="mensajeCarga">
-            </p>
-        </div>
-
-        <!-- VISTA: LOGIN -->
-        <div x-show="vistaActual === 'login'" class="flex-1 flex flex-col items-center justify-center">
-            <div
-                class="w-full max-w-md bg-white p-8 rounded-2xl border border-gray-200 shadow-lg">
-                <div class="text-center mb-8">
-                    <div
-                        class="inline-flex p-4 rounded-2xl bg-blue-50 text-4xl mb-4 ring-1 ring-blue-100">
-                        🔒</div>
-                    <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
-                    <p class="text-gray-500 text-sm mt-2">Access your certification dashboard</p>
-                </div>
-
-                <form @submit.prevent="login" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1 ml-1">Email</label>
-                        <input type="email" x-model="auth.email"
-                            class="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            placeholder="user@company.com">
+            <!-- Grid de Bancos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <template x-for="banco in listaBancos" :key="banco.id">
+                    <div @click="seleccionarBanco(banco.id)"
+                         class="group relative bg-slate-800 hover:bg-slate-750 border-2 transition-all duration-300 rounded-2xl p-8 cursor-pointer text-center"
+                         :class="bancoSeleccionado === banco.id ? 'border-blue-500 bg-blue-500/5 ring-2 ring-blue-500/20' : 'border-slate-700 hover:border-slate-500'">
+                        
+                        <div class="text-5xl mb-6 text-slate-300 font-thin group-hover:scale-110 transition-transform duration-300" x-text="banco.slug"></div>
+                        
+                        <h3 class="text-2xl font-bold text-white mb-2" x-text="banco.nombre"></h3>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-6" x-text="banco.descripcion"></p>
+                        
+                        <div class="inline-flex items-center text-sm font-bold transition-colors"
+                             :class="bancoSeleccionado === banco.id ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400'">
+                            <span x-text="bancoSeleccionado === banco.id ? 'Seleccionado' : 'Seleccionar'"></span>
+                            <svg class="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1 ml-1">Password</label>
-                        <input type="password" x-model="auth.password"
-                            class="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-gray-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            placeholder="••••••••">
-                    </div>
-                    <button type="submit" :disabled="cargandoAuth"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-md transition-all transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed mt-2">
-                        <span x-show="!cargandoAuth">Sign In</span>
-                        <span x-show="cargandoAuth" class="animate-pulse">Verifying credentials...</span>
-                    </button>
-                </form>
+                </template>
+            </div>
+            
+            <!-- Loading State Bancos -->
+            <div x-show="listaBancos.length === 0" class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p class="text-slate-400">Cargando bancos de datos...</p>
+            </div>
+        </section>
 
-                <div class="mt-6 pt-6 border-t border-gray-200 text-center">
-                    <button @click="loginAnonimo"
-                        class="text-gray-500 hover:text-gray-900 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
-                        Guest Access
-                    </button>
+        <!-- ========================================== -->
+        <!-- VISTA 2: DASHBOARD (Configuración)         -->
+        <!-- ========================================== -->
+        <section x-show="vistaActual === 'dashboard'" style="display: none;" class="animate-fade-in">
+            <!-- Header Dashboard -->
+            <div class="flex items-center justify-between mb-8 border-b border-slate-700 pb-6">
+                <div>
+                    <h2 class="text-3xl font-bold text-white mb-1">
+                        <span x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">Banco</span>
+                    </h2>
+                    <p class="text-slate-400">Panel de Control de Entrenamiento</p>
+                </div>
+                <div class="text-right hidden sm:block">
+                     <span class="block text-xs font-bold text-slate-500 uppercase">Estado</span>
+                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
+                        Online
+                     </span>
                 </div>
             </div>
-        </div>
 
-        <!-- VISTA: SELECCIÓN DE BANCO -->
-        <div x-show="vistaActual === 'inicio'" class="flex-1 flex flex-col items-center justify-center">
-            <div class="w-full max-w-4xl">
-                <div class="text-center mb-12">
-                    <h2 class="text-3xl font-black text-gray-900 mb-2">Selecciona tu Banco de Estudio</h2>
-                    <p class="text-gray-600 text-sm">Elige el área técnica que deseas practicar</p>
+            <!-- Grid de Modos -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 1. General -->
+                <button @click="comenzarQuiz('general')" 
+                        class="relative overflow-hidden group bg-gradient-to-br from-blue-600/20 to-slate-800 border border-blue-500/30 hover:border-blue-400 p-8 rounded-2xl text-left transition-all hover:shadow-lg hover:shadow-blue-900/20">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
+                    </div>
+                    <div class="text-4xl mb-4">📚</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Entrenamiento General</h3>
+                    <p class="text-slate-400 text-sm">Genera un set de 50 preguntas aleatorias de todo el banco.</p>
+                </button>
+
+                <!-- 2. Capítulos -->
+                <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl relative">
+                    <div class="text-4xl mb-4">⚙️</div>
+                    <h3 class="text-xl font-bold text-white mb-4">Por Capítulos (ATA)</h3>
+                    
+                    <div class="space-y-3">
+                        <label class="text-xs font-bold text-slate-500 uppercase">Seleccionar Tema</label>
+                        <select x-model="ataSeleccionado" 
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                            <option value="">Seleccionar ATA...</option>
+                            <template x-for="ata in atas" :key="ata.id">
+                                <option :value="ata.id" x-text="ata.nombre"></option>
+                            </template>
+                        </select>
+                        <button @click="comenzarQuiz('ata', ataSeleccionado)"
+                                :disabled="!ataSeleccionado"
+                                class="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/20">
+                            Estudiar Tema
+                        </button>
+                    </div>
                 </div>
 
+                <!-- 3. Repaso -->
+                <button @click="comenzarQuiz('repaso')" 
+                        class="relative overflow-hidden group bg-slate-800 border border-slate-700 hover:border-red-500/50 p-8 rounded-2xl text-left transition-all">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-red-500">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+                    </div>
+                    <div class="text-4xl mb-4">🚑</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Repaso Inteligente</h3>
+                    <p class="text-slate-400 text-sm">El algoritmo seleccionará tus fallos previos y preguntas "en cuarentena".</p>
+                </button>
+            </div>
+        </section>
 
-                <div class="grid md:grid-cols-3 gap-6">
-                    <template x-for="banco in listaBancos" :key="banco.id">
-                        <button @click="seleccionarBanco(banco.id)"
-                            class="group relative overflow-hidden rounded-2xl bg-white border transition-all duration-300 text-left p-8 flex flex-col items-center"
-                            :class="{
-                                'border-gray-200 hover:border-blue-600 hover:shadow-lg': bancoSeleccionado !== banco.id,
-                                'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500 shadow-lg': bancoSeleccionado === banco.id
-                            }">
+        <!-- ========================================== -->
+        <!-- VISTA 3: QUIZ (Preguntas Activas)          -->
+        <!-- ========================================== -->
+        <section x-show="vistaActual === 'quiz'" style="display: none;" class="max-w-3xl mx-auto">
+            
+            <!-- Barra Superior Quiz -->
+            <div class="flex items-center justify-between mb-6">
+                <span class="text-slate-400 font-mono text-sm" x-text="progresoLote"></span>
+                <button @click="volverAlDashboard()" class="text-sm text-slate-500 hover:text-white underline">
+                    Salir / Cancelar
+                </button>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="w-full bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
+                <div class="bg-blue-500 h-full transition-all duration-500 ease-out"
+                     :style="`width: ${((indiceActual + 1) / preguntas.length) * 100}%`"></div>
+            </div>
+
+            <!-- Tarjeta de Pregunta -->
+            <div class="bg-slate-800 rounded-2xl p-6 sm:p-10 border border-slate-700 shadow-2xl relative overflow-hidden"
+                 x-show="preguntaActual">
+                
+                <!-- Badge del ATA -->
+                <div class="mb-6">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold tracking-wide bg-slate-700 text-slate-300 border border-slate-600">
+                        <span x-text="preguntaActual?.numero || '###'"></span>
+                    </span>
+                </div>
+
+                <!-- Texto Pregunta -->
+                <h3 class="text-xl sm:text-2xl font-bold text-white mb-8 leading-relaxed" 
+                    x-text="preguntaActual?.texto"></h3>
+
+                <!-- Opciones -->
+                <div class="space-y-3">
+                    <template x-for="opcion in opcionesMezcladas" :key="opcion.letra">
+                        <button @click="responder(opcion.letra)"
+                                :disabled="bloqueado"
+                                class="w-full p-4 rounded-xl text-left transition-all duration-200 border-2 relative group"
+                                :class="{
+                                    'border-slate-700 hover:bg-slate-700/50 hover:border-slate-600': !bloqueado,
+                                    'bg-green-500/10 border-green-500 text-green-400': bloqueado && opcion.letra === preguntaActual.correcta,
+                                    'bg-red-500/10 border-red-500 text-red-400': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta,
+                                    'opacity-50 border-slate-800': bloqueado && opcion.letra !== preguntaActual.correcta && seleccionada !== opcion.letra
+                                }">
                             
-                            <div class="text-6xl mb-4 transition-transform duration-300" 
-                                 :class="bancoSeleccionado === banco.id ? 'scale-110' : 'group-hover:scale-110'"
-                                 x-text="banco.slug"></div>
-                            
-                            <h3 class="text-xl font-bold text-gray-900 mb-2 text-center" 
-                                x-text="banco.nombre"></h3>
-                            
-                            <p class="text-gray-600 text-sm text-center leading-relaxed" 
-                               x-text="banco.descripcion"></p>
-                            
-                            <div class="mt-6 flex items-center font-bold text-sm transition-transform"
-                                 :class="bancoSeleccionado === banco.id ? 'text-blue-600 translate-x-2' : 'text-gray-400 group-hover:text-blue-600 group-hover:translate-x-2'">
-                                <span x-text="bancoSeleccionado === banco.id ? 'Seleccionado' : 'Seleccionar'"></span>
-                                <span class="ml-2">→</span>
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm border transition-colors"
+                                     :class="{
+                                         'bg-slate-700 border-slate-600 text-slate-300': !bloqueado,
+                                         'bg-green-500 border-green-500 text-black': bloqueado && opcion.letra === preguntaActual.correcta,
+                                         'bg-red-500 border-red-500 text-white': bloqueado && seleccionada === opcion.letra && seleccionada !== preguntaActual.correcta
+                                     }">
+                                    <span x-text="opcion.letra"></span>
+                                </div>
+                                <span class="py-1" x-text="opcion.texto"></span>
                             </div>
                         </button>
                     </template>
                 </div>
-            </div>
-        </div>
 
-        <!-- VISTA: DASHBOARD (Antiguo Menú) -->
-        <div x-show="vistaActual === 'dashboard'" class="flex-1 flex flex-col justify-center">
+                <!-- Botón Siguiente (Flotante o fijo abajo) -->
+                <div class="mt-8 pt-6 border-t border-slate-700/50 flex justify-end" x-show="mostrarSiguiente">
+                    <button @click="siguientePregunta()" 
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-blue-900/20 transform transition hover:-translate-y-1 flex items-center gap-2">
+                        <span>Siguiente</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Empty State (Fallback por si falla carga) -->
+            <div x-show="!preguntaActual && !cargando" class="text-center py-20">
+                <div class="text-6xl mb-4">🤔</div>
+                <h3 class="text-xl text-white font-bold mb-2">No se encontraron preguntas</h3>
+                <p class="text-slate-400 mb-6">Intenta con otro capítulo o modo.</p>
+                <button @click="volverAlDashboard()" class="text-blue-400 hover:underline">Volver al Dashboard</button>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- MODAL GLOBAL: RESULTADOS FINAL DE LOTE     -->
+        <!-- ========================================== -->
+        <div x-show="vistaActual === 'fin'" 
+             style="display: none;"
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm"
+             x-transition.opacity>
             
-            <!-- CONTENIDO B787 (ACTIVO) -->
-            <div x-show="bancoSeleccionado === 'b787'" class="w-full">
-                <!-- Recuperar Sesión Alert -->
-                <div x-show="sesionGuardada" @click="recuperarSesion"
-                    class="mb-8 bg-yellow-50 border border-yellow-200 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-yellow-100 transition-all group">
-                    <div class="flex items-center gap-4">
-                        <div class="p-2 bg-yellow-100 rounded-lg text-yellow-600">⚠️</div>
-                        <div>
-                            <h3 class="font-bold text-yellow-800">Resume Previous Session</h3>
-                            <p class="text-xs text-yellow-600">Click to continue where you left off</p>
-                        </div>
-                    </div>
-                    <div class="text-yellow-600 group-hover:translate-x-1 transition-transform">➜</div>
-                </div>
+            <div class="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-700 text-center relative">
+                <!-- Decoración -->
+                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-t-2xl"></div>
 
-                <!-- 🎯 SELECTOR DE MODO DE ESTUDIO -->
-                <div class="mb-8 bg-white border border-gray-200 rounded-2xl p-6">
-                    <h3 class="text-sm font-bold text-gray-600 uppercase mb-4 tracking-wider">Modo de Estudio</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Tab: Estudio General -->
-                        <button @click="modoEstudio = 'general'" 
-                                class="relative overflow-hidden rounded-xl px-6 py-4 text-left transition-all duration-300 border-2"
-                                :class="{
-                                    'bg-blue-500 border-blue-600 text-white shadow-lg': modoEstudio === 'general',
-                                    'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50': modoEstudio !== 'general'
-                                }">
-                            <div class="flex items-center gap-3">
-                                <div class="text-2xl" x-text="modoEstudio === 'general' ? '🧠' : '📚'"></div>
-                                <div>
-                                    <h4 class="font-bold text-lg" 
-                                        :class="modoEstudio === 'general' ? 'text-white' : 'text-gray-900'">
-                                        Estudio General
-                                    </h4>
-                                    <p class="text-xs mt-1" 
-                                       :class="modoEstudio === 'general' ? 'text-blue-100' : 'text-gray-500'">
-                                        Preguntas nuevas y revisiones
-                                    </p>
-                                </div>
-                            </div>
-                            <!-- Active Indicator -->
-                            <div x-show="modoEstudio === 'general'" 
-                                 class="absolute top-2 right-2 bg-white/20 rounded-full p-1">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </button>
+                <h2 class="text-3xl font-black text-white mb-2 mt-4">Lote Completado</h2>
+                <p class="text-slate-400 mb-8">Resumen de la sesión</p>
 
-                        <!-- Tab: Repasar Fallos -->
-                        <button @click="modoEstudio = 'repaso'" 
-                                class="relative overflow-hidden rounded-xl px-6 py-4 text-left transition-all duration-300 border-2"
-                                :class="{
-                                    'bg-red-500 border-red-600 text-white shadow-lg': modoEstudio === 'repaso',
-                                    'bg-white border-gray-200 text-gray-600 hover:border-red-300 hover:bg-red-50': modoEstudio !== 'repaso'
-                                }">
-                            <div class="flex items-center gap-3">
-                                <div class="text-2xl" x-text="modoEstudio === 'repaso' ? '🚑' : '⚠️'"></div>
-                                <div>
-                                    <h4 class="font-bold text-lg" 
-                                        :class="modoEstudio === 'repaso' ? 'text-white' : 'text-gray-900'">
-                                        Repaso Inteligente
-                                    </h4>
-                                    <p class="text-xs mt-1" 
-                                        :class="modoEstudio === 'repaso' ? 'text-red-100' : 'text-gray-500'">
-                                        Curar fallos pendientes
-                                    </p>
-                                </div>
-                            </div>
-                            <!-- Active Indicator -->
-                            <div x-show="modoEstudio === 'repaso'" 
-                                 class="absolute top-2 right-2 bg-white/20 rounded-full p-1">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-3 gap-6">
-                    <!-- Card: Entrenamiento General -->
-                    <button @click="comenzarQuiz('general')"
-                        class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
-                        <div class="relative z-10">
-                            <div
-                                class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                📚</div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Entrenamiento General</h3>
-                            <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. 50 preguntas aleatorias de todos los módulos.</p>
-                        </div>
-                        <div
-                            class="relative z-10 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                            Iniciar Sesión <span class="ml-2">→</span></div>
-                    </button>
-
-                    <!-- Card: Sistemas (ATA) -->
-                    <div
-                        class="rounded-2xl bg-white border border-gray-200 p-6 flex flex-col justify-between h-64 relative overflow-hidden">
-                        <div class="relative z-10">
-                            <div
-                                class="w-14 h-14 rounded-xl bg-purple-50 flex items-center justify-center text-3xl mb-4">
-                                ⚙️</div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Por Módulo ATA</h3>
-                            <p class="text-gray-600 text-sm mb-4">Enfócate en un capítulo ATA específico.</p>
-
-                            <div class="flex gap-2 -mx-2 -mb-2 -mr-3 px-2 pb-2 pr-3">
-                                <select x-model="ataSeleccionado"
-                                    class="flex-1 bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-900 outline-none focus:border-purple-600 focus:ring-1 focus:ring-purple-600 cursor-pointer">
-                                    <option value="">Select ATA...</option>
-                                    <template x-for="ata in atas" :key="ata.id">
-                                        <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
-                                    </template>
-                                </select>
-                                <button @click="if(ataSeleccionado) comenzarQuiz('ata', ataSeleccionado)" 
-                                        :disabled="!ataSeleccionado"
-                                        class="bg-purple-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-700 transition-colors">
-                                    GO
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card: Fallos -->
-                    <button @click="comenzarQuiz('repaso')"
-                        class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-red-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
-                        <div class="relative z-10">
-                            <div
-                                class="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                                ⚠️</div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Repasar Fallos</h3>
-                            <p class="text-gray-600 text-sm leading-relaxed">Reintenta preguntas que fallaste previamente.</p>
-                        </div>
-                        <div
-                            class="relative z-10 flex items-center text-red-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
-                            Iniciar Repaso <span class="ml-2">→</span></div>
-                    </button>
-                </div>
-
-                <!-- ZONA DE GESTIÓN -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <button @click="reiniciarProgreso" class="w-full flex items-center justify-center gap-2 text-gray-500 hover:text-red-600 text-xs font-bold tracking-widest uppercase p-4 rounded-xl hover:bg-red-50 transition-all group">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                        Reiniciar Todo el Progreso
-                    </button>
-                </div>
-            </div>
-
-            <!-- Botón Volver a Bancos -->
-            <button @click="cambiarBanco()" 
-                    class="mt-8 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
-                <span>←</span> Cambiar Banco de Preguntas
-            </button>
-        </div>
-
-        <!-- VISTA: EMPTY STATE (Próximamente / Sin Preguntas) -->
-        <div x-show="vistaActual === 'quiz' && preguntas.length === 0" 
-             class="flex-1 flex flex-col items-center justify-center text-center py-12 animate-float">
-            <div class="text-8xl mb-6 filter drop-shadow-md">🚧</div>
-            <h3 class="text-3xl font-black text-gray-900 mb-4">Próximamente</h3>
-            <p class="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
-                Estamos preparando el contenido técnico para esta sección.
-            </p>
-            <div class="mt-8 p-4 bg-blue-50 text-blue-800 rounded-xl text-sm font-medium border border-blue-100">
-                🔔 Te notificaremos cuando esté disponible.
-            </div>
-            <button @click="volverAlDashboard()" class="mt-6 text-blue-600 font-bold hover:underline">
-                Volver al Dashboard
-            </button>
-        </div>
-            
-
-        </div>
-
-        <!-- VISTA: QUIZ -->
-        <div x-show="vistaActual === 'quiz'" class="flex-1 flex flex-col relative"
-             x-data="{ mostrarExplicacion: false }">
-             
-            <!-- Quiz Header Compacto -->
-            <div class="flex justify-between items-center mb-4">
-                <button @click="volverAlDashboard()" class="text-gray-400 hover:text-gray-600 text-sm font-bold flex items-center gap-1 transition-colors">
-                    <span>✕</span> Salir
-                </button>
-                <div class="text-sm font-medium text-gray-500" x-text="progresoLote"></div>
-            </div>
-
-            <!-- Barra de Progreso Lote -->
-            <div class="w-full bg-gray-100 h-1.5 rounded-full mb-6 overflow-hidden">
-                <div class="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
-                     :style="`width: ${progresoPorcentaje}%`">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div
-                    class="bg-white rounded-xl p-4 border-l-4 border-blue-600 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total</p>
-                        <p class="text-2xl font-black text-gray-900" x-text="preguntas.length"></p>
-                    </div>
-                </div>
-                <div
-                    class="bg-white rounded-xl p-4 border-l-4 border-emerald-600 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Correct</p>
-                        <p class="text-2xl font-black text-emerald-600" x-text="stats.correctas"></p>
-                    </div>
-                </div>
-                <div
-                    class="bg-white rounded-xl p-4 border-l-4 border-red-600 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Incorrect</p>
-                        <p class="text-2xl font-black text-red-600" x-text="stats.incorrectas"></p>
-                    </div>
-                </div>
-                <div
-                    class="bg-white rounded-xl p-4 border-l-4 border-purple-600 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Streak</p>
-                        <p class="text-2xl font-black text-purple-600" x-text="stats.racha"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Progress Bar -->
-            <!-- Removed old progress bar -->
-
-            <!-- Question Card -->
-            <div
-                class="flex-1 flex flex-col bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200">
-                <!-- Header Azul -->
-                <div class="bg-blue-600 p-6 flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <span
-                            class="bg-white/20 px-3 py-1 rounded-lg text-xs font-bold text-white border border-white/10"
-                            x-text="`QUESTION ${preguntaActual?.numero || '...'}`"></span>
-                    </div>
-                    <button @click="pausarQuiz"
-                        class="text-blue-100 hover:text-white transition-colors text-xs font-bold">
-                        PAUSE / EXIT
-                    </button>
-                </div>
-
-                <!-- Body -->
-                <div class="p-6 md:p-8 flex-1 flex flex-col">
-                    <h2 class="text-xl md:text-2xl font-bold text-gray-900 leading-relaxed mb-8"
-                        x-text="preguntaActual?.texto"></h2>
-
-
-                    <div class="grid gap-4">
-                        <!-- Opción A -->
-                        <button @click="responder('A')" :disabled="bloqueado" x-show="obtenerTextoOpcion('A')"
-                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="{
-                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
-                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[0] === preguntaActual.correcta?.toUpperCase(),
-                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase(),
-                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase()
-                            }">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="{
-                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
-                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[0] === preguntaActual.correcta?.toUpperCase(),
-                                    'bg-red-600 text-white': bloqueado && seleccionada === 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase(),
-                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'A' && ordenOpciones[0] !== preguntaActual.correcta?.toUpperCase()
-                                }">A</div>
-                            <span
-                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
-                                x-text="obtenerTextoOpcion('A')"></span>
-                        </button>
-
-                        <!-- Opción B -->
-                        <button @click="responder('B')" :disabled="bloqueado" x-show="obtenerTextoOpcion('B')"
-                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="{
-                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
-                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[1] === preguntaActual.correcta?.toUpperCase(),
-                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase(),
-                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase()
-                            }">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="{
-                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
-                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[1] === preguntaActual.correcta?.toUpperCase(),
-                                    'bg-red-600 text-white': bloqueado && seleccionada === 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase(),
-                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'B' && ordenOpciones[1] !== preguntaActual.correcta?.toUpperCase()
-                                }">B</div>
-                            <span
-                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
-                                x-text="obtenerTextoOpcion('B')"></span>
-                        </button>
-
-                        <!-- Opción C -->
-                        <button @click="responder('C')" :disabled="bloqueado" x-show="obtenerTextoOpcion('C')"
-                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="{
-                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
-                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[2] === preguntaActual.correcta?.toUpperCase(),
-                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase(),
-                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase()
-                            }">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="{
-                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
-                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[2] === preguntaActual.correcta?.toUpperCase(),
-                                    'bg-red-600 text-white': bloqueado && seleccionada === 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase(),
-                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'C' && ordenOpciones[2] !== preguntaActual.correcta?.toUpperCase()
-                                }">C</div>
-                            <span
-                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
-                                x-text="obtenerTextoOpcion('C')"></span>
-                        </button>
-
-                        <!-- Opción D -->
-                        <button @click="responder('D')" :disabled="bloqueado" x-show="obtenerTextoOpcion('D')"
-                            class="group relative w-full p-5 rounded-xl text-left border-2 transition-all duration-200 flex items-start gap-4"
-                            :class="{
-                                'bg-white border-gray-200 shadow-sm hover:border-blue-500 hover:shadow-md cursor-pointer': !bloqueado,
-                                'bg-emerald-50 border-emerald-500 text-emerald-700 ring-1 ring-emerald-500': bloqueado && ordenOpciones[3] === preguntaActual.correcta?.toUpperCase(),
-                                'bg-red-50 border-red-500 text-red-700 shake ring-1 ring-red-500': bloqueado && seleccionada === 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase(),
-                                'bg-gray-50 border-gray-200 opacity-50 cursor-not-allowed': bloqueado && seleccionada !== 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase()
-                            }">
-                            <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm transition-colors"
-                                :class="{
-                                    'bg-gray-100 text-gray-500 group-hover:bg-blue-600 group-hover:text-white': !bloqueado,
-                                    'bg-emerald-600 text-white': bloqueado && ordenOpciones[3] === preguntaActual.correcta?.toUpperCase(),
-                                    'bg-red-600 text-white': bloqueado && seleccionada === 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase(),
-                                    'bg-gray-200 text-gray-400': bloqueado && seleccionada !== 'D' && ordenOpciones[3] !== preguntaActual.correcta?.toUpperCase()
-                                }">D</div>
-                            <span
-                                class="text-sm md:text-base font-medium text-gray-700 group-hover:text-gray-900 transition-colors"
-                                x-text="obtenerTextoOpcion('D')"></span>
-                        </button>
-                    </div>
-                </div>
-                <!-- Footer Actions -->
-                    <div class="flex justify-between items-center pt-6 border-t border-gray-100">
-                        <button @click="mostrarExplicacion = !mostrarExplicacion"
-                            x-show="bloqueado"
-                            class="text-blue-600 text-sm font-bold hover:text-blue-800 transition-colors flex items-center gap-2">
-                            <span x-text="mostrarExplicacion ? 'Ocultar Explicación' : 'Ver Explicación'"></span>
-                        </button>
-
-                        <button @click="siguientePregunta()" 
-                            x-show="mostrarSiguiente"
-                            class="ml-auto bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg shadow-blue-200 flex items-center gap-2">
-                            <span>Siguiente</span>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        </button>
-                    </div>
-            </div>
-        </div>
-
-        <!-- VISTA: FIN -->
-        <div x-show="vista === 'fin'" class="flex-1 flex flex-col items-center justify-center text-center">
-            <div
-                class="bg-white p-8 rounded-2xl border border-gray-200 shadow-lg w-full max-w-lg relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-purple-600"></div>
-                <h2 class="text-3xl font-black text-gray-900 mb-2">Assessment Complete</h2>
-                <p class="text-gray-500 mb-8">Session Summary</p>
-
-                <div class="relative w-48 h-48 mx-auto mb-8">
-                    <canvas id="chartResultados"></canvas>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span class="text-4xl font-black text-gray-900" x-text="`${porcentajeAcierto}%`"></span>
-                        <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Accuracy</span>
-                    </div>
+                <!-- Gráfico Simple -->
+                <div class="relative w-40 h-40 mx-auto mb-8">
+                     <canvas id="chartResultados"></canvas>
+                     <div class="absolute inset-0 flex items-center justify-center flex-col">
+                         <span class="text-3xl font-bold text-white" x-text="porcentajeAcierto + '%'"></span>
+                         <span class="text-xs text-slate-500 uppercase">Precisión</span>
+                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-gray-50 p-4 rounded-xl border border-emerald-200">
-                        <p class="text-3xl font-black text-emerald-600" x-text="stats.correctas"></p>
-                        <p class="text-xs text-gray-600 uppercase font-bold">Correct</p>
+                    <div class="bg-green-500/10 border border-green-500/20 p-4 rounded-xl">
+                        <div class="text-2xl font-bold text-green-400" x-text="stats.correctas"></div>
+                        <div class="text-xs text-green-500/70 uppercase font-bold">Correctas</div>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded-xl border border-red-200">
-                        <p class="text-3xl font-black text-red-600" x-text="stats.incorrectas"></p>
-                        <p class="text-xs text-gray-600 uppercase font-bold">Incorrect</p>
+                    <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl">
+                        <div class="text-2xl font-bold text-red-400" x-text="stats.incorrectas"></div>
+                        <div class="text-xs text-red-500/70 uppercase font-bold">Incorrectas</div>
                     </div>
                 </div>
-                <button @click="volverAlMenu"
-                    class="w-full bg-gray-700 hover:bg-gray-800 text-white py-4 rounded-xl font-bold transition-all">Return
-                    to Dashboard</button>
+
+                <button @click="volverAlDashboard()" 
+                        class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 rounded-xl transition-colors">
+                    Volver al Dashboard
+                </button>
             </div>
         </div>
 
-    </div>
+    </main>
 
-    <!-- SCRIPT DE LÓGICA PRINCIPAL -->
-    <script src="./src/js/app.js"></script>
-
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Alpine.js al final -->
+    <script src="//unpkg.com/alpinejs" defer></script>
+    
+    <!-- App Logic -->
+    <script src="src/js/app.js"></script>
 </body>
-
-</html>
