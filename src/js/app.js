@@ -10,7 +10,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 function app() {
     return {
         // --- ESTADO GLOBAL ---
-        vista: 'cargando',
+        vistaActual: 'cargando', // 🆕 BATCH LOADING: 'cargando' | 'login' | 'inicio' | 'dashboard' | 'quiz' | 'fin'
         mensajeCarga: 'Iniciando sistemas...',
         auth: { email: '', password: '', user: null },
         cargandoAuth: false,
@@ -25,8 +25,8 @@ function app() {
         // --- ESTADO DEL QUIZ ---
         modo: '',
         modoEstudio: 'general', // 'general' o 'repaso' - Double Validation Logic
-        preguntas: [],
-        indiceActual: 0,
+        preguntas: [], // 🆕 BATCH: Array de 50 preguntas
+        indiceActual: 0, // 🆕 BATCH: Índice dentro del lote (0-49)
         bloqueado: false,
         seleccionada: null, // Letra VISUAL seleccionada (A, B, C, D)
         ordenOpciones: ['A', 'B', 'C', 'D'], // Mapeo: Posición Visual -> Letra Real en DB
@@ -40,12 +40,16 @@ function app() {
 
         // --- GETTERS COMPUTADOS ---
         get preguntaActual() {
-            return this.preguntas[this.indiceActual];
+            return this.preguntas[this.indiceActual]; // 🆕 BATCH: Getter dinámico
         },
         get modoTexto() {
             const map = { 'nuevas': 'Estudio General', 'ata': 'Por Categoría', 'fallos': 'Repaso de Fallos' };
             const modoDisplay = this.modoEstudio === 'repaso' ? ' (Repaso)' : ' (General)';
             return (map[this.modo] || 'Estudio') + modoDisplay;
+        },
+        get progresoLote() {// 🆕 BATCH: Progreso del lote actual
+            if (!this.preguntas.length) return 'Sin preguntas';
+            return `Pregunta ${this.indiceActual + 1} de ${this.preguntas.length}`;
         },
         get progresoPorcentaje() {
             return this.preguntas.length ? ((this.indiceActual + 1) / this.preguntas.length) * 100 : 0;
@@ -88,16 +92,16 @@ function app() {
                     const bancoGuardado = localStorage.getItem('b787_banco_actual');
                     if (bancoGuardado) {
                         this.bancoSeleccionado = bancoGuardado;
-                        this.vista = 'menu';
+                        this.vistaActual = 'dashboard';
                     } else {
-                        this.vista = 'seleccion_banco';
+                        this.vistaActual = 'inicio';
                     }
                 } else {
-                    this.vista = 'login';
+                    this.vistaActual = 'login';
                 }
             } catch (e) {
                 this.showToast("Modo Offline / Error de Red", 'error');
-                this.vista = 'login';
+                this.vistaActual = 'login';
             }
         },
 
@@ -164,7 +168,7 @@ async cargarAtas() {
                 this.auth.user = data.user;
                 await this.cargarAtas();
                 await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
-                this.vista = 'seleccion_banco';
+                this.vistaActual = 'inicio';
             }
         },
 
@@ -179,7 +183,7 @@ async cargarAtas() {
                 this.auth.user = data.user;
                 await this.cargarAtas();
                 await this.cargarBancos(); // 🐛 FIX: Load banks immediately after login
-                this.vista = 'seleccion_banco';
+                this.vistaActual = 'inicio';
                 this.showToast("Modo Invitado Activado", 'info');
             }
         },
@@ -189,7 +193,7 @@ async cargarAtas() {
             this.auth.user = null;
             localStorage.removeItem('b787_sesion');
             localStorage.removeItem('b787_banco_actual');
-            this.vista = 'login';
+            this.vistaActual = 'login';
         },
 
         async reiniciarProgreso() {
@@ -198,7 +202,7 @@ async cargarAtas() {
                 return;
             }
 
-            this.vista = 'cargando';
+            this.vistaActual = 'cargando';
             this.mensajeCarga = 'Reiniciando sistemas...';
 
             try {
@@ -215,12 +219,12 @@ async cargarAtas() {
                 
                 // Recargar datos frescos
                 await this.cargarAtas(); 
-                this.vista = 'menu';
+                this.vistaActual = 'dashboard';
 
             } catch (e) {
                 console.error(e);
                 this.showToast("Error al reiniciar", 'error');
-                this.vista = 'menu';
+                this.vistaActual = 'dashboard';
             }
         },
 
@@ -230,8 +234,7 @@ async seleccionarBanco(id) {
     
     // 1. Actualizar Estado
     this.bancoSeleccionado = id;
-    this.ataSeleccionado = ''; // Reset ATA al cambiar banco
-    this.preguntas = []; // Limpiar preguntas viejas visualmente
+    this.ataSeleccionado = '';
     localStorage.setItem('b787_banco_actual', id);
     
     // 2. Cargar Dependencias (NO BLOQUEANTE)
@@ -240,26 +243,51 @@ async seleccionarBanco(id) {
         await this.cargarAtas();
     } catch (error) {
         console.error('⚠️ Error no bloqueante cargando ATAs:', error);
-        // Continuar igualmente - ATAs son opcionales para modo general
     }
     
-    // 3. Navegar al Menú
-    this.vista = 'menu';
-    
-    // 4. 🎯 CRÍTICO: Cargar preguntas automáticamente en modo general
-    console.log('🚀 Auto-cargando preguntas en modo:', this.modoEstudio);
-    try {
-        await this.cargarPreguntas('nuevas');
-    } catch (error) {
-        console.error('❌ Error cargando preguntas iniciales:', error);
-        // El usuario puede reintentar manualmente desde el menú
-    }
+    // 3. 🆕 BATCH: Navegamos al dashboard sin cargar preguntas
+    this.vistaActual = 'dashboard';
+    console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
 },
 
         cambiarBanco() {
-            this.vista = 'seleccion_banco';
+            this.vistaActual = 'inicio';
             this.ataSeleccionado = '';
         },
+
+// 🆕 BATCH: Nueva función para iniciar quiz con configuración
+async comenzarQuiz(modo, ataId = null) {
+    console.log('🎬 Iniciando quiz:', { modo, ataId });
+    
+    // Setup mode
+    this.modoEstudio = modo === 'repaso' ? 'repaso' : 'general';
+    
+    // Setup ATA filter if provided
+    if (ataId) {
+        this.ataSeleccionado = ataId;
+    }
+    
+    // Load batch (mode determines which RPC to call)
+    const entrada = modo === 'repaso' ? 'fallos' : 
+                    ataId ? parseInt(ataId) : 'nuevas';
+    
+    await this.cargarPreguntas(entrada);
+    
+    // Navigate to quiz if questions were loaded
+    if (this.preguntas.length > 0) {
+        this.vistaActual = 'quiz';
+        console.log('✅ Quiz iniciado con', this.preguntas.length, 'preguntas');
+    }
+},
+
+// 🆕 BATCH: Función para volver al dashboard
+volverAlDashboard() {
+    console.log('🔙 Volviendo al dashboard');
+    this.vistaActual = 'dashboard';
+    this.preguntas = [];
+    this.indiceActual = 0;
+    this.resetStats();
+},
 
         // --- LÓGICA DEL QUIZ ---
         recuperarSesion() {
@@ -272,7 +300,7 @@ async seleccionarBanco(id) {
                     this.modo = saved.modo;
                     // Recuperar el orden de opciones guardado o generar uno nuevo si no existe (retrocompatibilidad)
                     this.ordenOpciones = saved.ordenOpciones || this.mezclarOpciones(true); 
-                    this.vista = 'quiz';
+                    this.vistaActual = 'quiz';
                 }
             } catch (e) { localStorage.removeItem('b787_sesion'); }
         },
@@ -286,14 +314,14 @@ async seleccionarBanco(id) {
                 modo: this.modo
             });
 
-            this.vista = 'cargando';
+            this.vistaActual = 'cargando';
             this.mensajeCarga = 'Preparando taller...';
 
             // 🛡️ VALIDATION: Ensure a bank is selected
             if (!this.bancoSeleccionado) {
                 console.error('❌ No hay banco seleccionado');
                 this.showToast('Por favor, selecciona un banco primero', 'error');
-                this.vista = 'seleccion_banco';
+                this.vistaActual = 'inicio';
                 return;
             }
 
@@ -304,21 +332,21 @@ async seleccionarBanco(id) {
                 let rpcName, params;
 
                 // 🎯 DOBLE VALIDACIÓN: Bifurcación por Modo de Estudio
-                if (this.modoEstudio === 'repaso') {
-                    // CASO 1: Modo Repaso - Usar obtener_repaso
-                    rpcName = 'obtener_repaso';
-                    params = { 
-                        p_banco_id: this.bancoSeleccionado,
-                        cantidad: 1 
-                    };
-                } else {
-                    // CASO 2: Modo General - Usar obtener_general
-                    rpcName = 'obtener_general';
-                    params = { 
-                        p_banco_id: this.bancoSeleccionado,
-                        p_ata_id: null, // Can be set for ATA filtering
-                        cantidad: 1 
-                    };
+        if (this.modoEstudio === 'repaso') {
+            // CASO 1: Modo Repaso - Usar obtener_repaso
+            rpcName = 'obtener_repaso';
+            params = { 
+                p_banco_id: this.bancoSeleccionado,
+                cantidad: 50 // 🆕 BATCH: 50 preguntas por lote
+            };
+        } else {
+            // CASO 2: Modo General - Usar obtener_general
+            rpcName = 'obtener_general';
+            params = { 
+                p_banco_id: this.bancoSeleccionado,
+                p_ata_id: null, // Can be set for ATA filtering
+                cantidad: 50 // 🆕 BATCH: 50 preguntas por lote
+            };
 
                     // Si el usuario seleccionó un ATA específico
                     if (this.modo === 'ata') {
@@ -362,7 +390,7 @@ async seleccionarBanco(id) {
                 this.indiceActual = 0;
                 this.mezclarOpciones(); // Mezclar para la primera pregunta
                 this.guardarEstadoLocal();
-                this.vista = 'quiz';
+                this.vistaActual = 'quiz';
 
             } catch (e) {
                 console.error(e);
@@ -426,18 +454,28 @@ async seleccionarBanco(id) {
             }
         },
 
-        siguientePregunta() {
-            if (this.indiceActual < this.preguntas.length - 1) {
-                this.indiceActual++;
-                this.bloqueado = false;
-                this.seleccionada = null;
-                this.mostrarSiguiente = false;
-                this.mezclarOpciones(); // Mezclar para la siguiente
-                this.guardarEstadoLocal();
-            } else {
-                this.finalizarSesion();
-            }
-        },
+        // 🆕 BATCH: Navegación dentro del lote (client-side)
+siguientePregunta() {
+    // Reset visual states
+    this.bloqueado = false;
+    this.seleccionada = null;
+    this.mostrarSiguiente = false;
+    
+    // Navigate to next question
+    this.indiceActual++;
+    
+    // 🎯 Check if batch is complete
+    if (this.indiceActual >= this.preguntas.length) {
+        const stats = `¡Lote completado!\n\nHas respondido ${this.preguntas.length} preguntas.\n\n✅ Correctas: ${this.stats.correctas}\n❌ Incorrectas: ${this.stats.incorrectas}\n🎯 Racha: ${this.stats.racha}`;
+        alert(stats);
+        this.volverAlDashboard();
+        return;
+    }
+    
+    // Shuffle options for next question
+    this.mezclarOpciones();
+    this.guardarEstadoLocal();
+},
 
         handleTeclado(e) {
             if (this.vista !== 'quiz') return;
@@ -472,7 +510,7 @@ async seleccionarBanco(id) {
         },
 
         finalizarSesion() {
-            this.vista = 'fin';
+            this.vistaActual = 'fin';
             localStorage.removeItem('b787_sesion');
             this.sesionGuardada = false;
 
@@ -521,9 +559,9 @@ async seleccionarBanco(id) {
         },
 
         volverAlMenu() {
-            if (this.vista === 'fin') this.resetStats();
+            if (this.vistaActual === 'fin') this.resetStats();
             this.preguntas = [];
-            this.vista = 'menu';
+            this.vistaActual = 'dashboard';
             this.ataSeleccionado = '';
         },
 
@@ -551,3 +589,5 @@ async seleccionarBanco(id) {
         // claseBoton() and estiloLetra() removed - see index.html button :class bindings
     }
 }
+
+

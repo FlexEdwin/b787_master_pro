@@ -217,7 +217,7 @@
         </div>
 
         <!-- VISTA: SELECCIÓN DE BANCO -->
-        <div x-show="vista === 'seleccion_banco'" class="flex-1 flex flex-col items-center justify-center">
+        <div x-show="vistaActual === 'inicio'" class="flex-1 flex flex-col items-center justify-center">
             <div class="w-full max-w-4xl">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-black text-gray-900 mb-2">Selecciona tu Banco de Estudio</h2>
@@ -255,8 +255,8 @@
             </div>
         </div>
 
-        <!-- VISTA: MENU -->
-        <div x-show="vista === 'menu'" class="flex-1 flex flex-col justify-center">
+        <!-- VISTA: DASHBOARD (Antiguo Menú) -->
+        <div x-show="vistaActual === 'dashboard'" class="flex-1 flex flex-col justify-center">
             
             <!-- CONTENIDO B787 (ACTIVO) -->
             <div x-show="bancoSeleccionado === 'b787'" class="w-full">
@@ -318,11 +318,11 @@
                                 <div>
                                     <h4 class="font-bold text-lg" 
                                         :class="modoEstudio === 'repaso' ? 'text-white' : 'text-gray-900'">
-                                        Repasar Fallos
+                                        Repaso Inteligente
                                     </h4>
                                     <p class="text-xs mt-1" 
-                                       :class="modoEstudio === 'repaso' ? 'text-red-100' : 'text-gray-500'">
-                                        Solo preguntas falladas
+                                        :class="modoEstudio === 'repaso' ? 'text-red-100' : 'text-gray-500'">
+                                        Curar fallos pendientes
                                     </p>
                                 </div>
                             </div>
@@ -338,15 +338,15 @@
                 </div>
 
                 <div class="grid md:grid-cols-3 gap-6">
-                    <!-- Card: Estudio General -->
-                    <button @click="cargarPreguntas('nuevas')"
+                    <!-- Card: Entrenamiento General -->
+                    <button @click="comenzarQuiz('general')"
                         class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
                         <div class="relative z-10">
                             <div
                                 class="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300">
                                 📚</div>
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Estudio General</h3>
-                            <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. Preguntas aleatorias de todos los módulos.</p>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Entrenamiento General</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Modo estándar. 50 preguntas aleatorias de todos los módulos.</p>
                         </div>
                         <div
                             class="relative z-10 flex items-center text-blue-600 font-bold text-sm group-hover:translate-x-2 transition-transform">
@@ -372,12 +372,17 @@
                                         <option :value="ata.id" x-text="`${ata.id} - ${ata.nombre}`"></option>
                                     </template>
                                 </select>
+                                <button @click="if(ataSeleccionado) comenzarQuiz('ata', ataSeleccionado)" 
+                                        :disabled="!ataSeleccionado"
+                                        class="bg-purple-600 text-white px-3 py-2 rounded-xl text-xs font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-purple-700 transition-colors">
+                                    GO
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Card: Fallos -->
-                    <button @click="cargarPreguntas('fallos')"
+                    <button @click="comenzarQuiz('repaso')"
                         class="group relative overflow-hidden rounded-2xl bg-white border border-gray-200 hover:border-red-600 hover:shadow-lg transition-all duration-300 text-left h-64 flex flex-col justify-between p-6">
                         <div class="relative z-10">
                             <div
@@ -415,13 +420,32 @@
                     🔔 Te notificaremos cuando esté disponible.
                 </div>
             </div>
-
+            
+            <!-- Botón Volver a Bancos -->
+            <button @click="cambiarBanco()" 
+                    class="mt-8 text-gray-400 hover:text-gray-600 text-sm font-medium transition-colors flex items-center justify-center gap-2 mx-auto">
+                <span>←</span> Cambiar Banco de Preguntas
+            </button>
         </div>
 
         <!-- VISTA: QUIZ -->
-        <div x-show="vista === 'quiz'" class="flex-1 flex flex-col gap-6">
+        <div x-show="vistaActual === 'quiz'" class="flex-1 flex flex-col relative"
+             x-data="{ mostrarExplicacion: false }">
+             
+            <!-- Quiz Header Compacto -->
+            <div class="flex justify-between items-center mb-4">
+                <button @click="volverAlDashboard()" class="text-gray-400 hover:text-gray-600 text-sm font-bold flex items-center gap-1 transition-colors">
+                    <span>✕</span> Salir
+                </button>
+                <div class="text-sm font-medium text-gray-500" x-text="progresoLote"></div>
+            </div>
 
-            <!-- Top Stats Grid -->
+            <!-- Barra de Progreso Lote -->
+            <div class="w-full bg-gray-100 h-1.5 rounded-full mb-6 overflow-hidden">
+                <div class="bg-blue-600 h-full rounded-full transition-all duration-500 ease-out"
+                     :style="`width: ${progresoPorcentaje}%`">
+                </div>
+            </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div
                     class="bg-white rounded-xl p-4 border-l-4 border-blue-600 shadow-sm flex items-center justify-between">
@@ -454,10 +478,7 @@
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                <div class="bg-blue-600 h-full transition-all duration-500 ease-out"
-                    :style="`width: ${progresoPorcentaje}%`"></div>
-            </div>
+            <!-- Removed old progress bar -->
 
             <!-- Question Card -->
             <div
@@ -567,18 +588,21 @@
                         </button>
                     </div>
                 </div>
-            </div>
+                <!-- Footer Actions -->
+                    <div class="flex justify-between items-center pt-6 border-t border-gray-100">
+                        <button @click="mostrarExplicacion = !mostrarExplicacion"
+                            x-show="bloqueado"
+                            class="text-blue-600 text-sm font-bold hover:text-blue-800 transition-colors flex items-center gap-2">
+                            <span x-text="mostrarExplicacion ? 'Ocultar Explicación' : 'Ver Explicación'"></span>
+                        </button>
 
-            <!-- Next Button -->
-            <div x-show="mostrarSiguiente" class="sticky bottom-4 z-20" x-transition.slide.up>
-                <button @click="siguientePregunta"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-95">
-                    <span>Next Question</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                </button>
+                        <button @click="siguientePregunta()" 
+                            x-show="mostrarSiguiente"
+                            class="ml-auto bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all transform hover:scale-105 shadow-lg shadow-blue-200 flex items-center gap-2">
+                            <span>Siguiente</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </div>
             </div>
         </div>
 

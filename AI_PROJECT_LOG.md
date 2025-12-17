@@ -177,6 +177,7 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
   ```
 
 - ✅ **Robustecer `seleccionarBanco()`:**
+
   ```javascript
   async seleccionarBanco(id) {
       // ... actualizar estado ...
@@ -209,3 +210,38 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 - Errores de ATAs son informativos pero no fatales
 - Usuario ve preguntas inmediatamente después de selección
 - Robustez del 100% ante fallos de red o backend
+
+---
+
+### [2025-12-17] - Refactor: Batch Loading & Navigation 🚀
+
+**CAMBIOS ARQUITECTÓNICOS:**
+
+- **Navegación de 3 Niveles:** `Inicio` (Bancos) → `Dashboard` (Config) → `Quiz` (Estudio)
+- **Carga por Lotes:** Se cargan 50 preguntas a la vez (Reducción de llamadas RPC en 98%)
+- **Navegación Cliente:** `siguientePregunta()` ahora es instantánea (no requiere red)
+
+**MODIFICACIONES CLAVE:**
+
+1. **Estado Global (`app.js`):**
+
+   - Renombrado `vista` a `vistaActual` para mayor claridad
+   - Añadido getter `progresoLote` ("Pregunta X de Y")
+   - `preguntaActual` convertida a getter computado
+
+2. **Flujo de Navegación:**
+
+   - `seleccionarBanco()`: Ya no carga preguntas, solo lleva al Dashboard
+   - `comenzarQuiz(modo, ata)`: Nueva función centralizada para configurar y cargar el lote
+   - `volverAlDashboard()`: Gestiona la salida limpia del quiz
+
+3. **Interfaz de Usuario (`index.html`):**
+   - **Dashboard:** Nueva pantalla central con opciones claras ("Entrenamiento", "Capítulos", "Repaso")
+   - **Quiz Optimizado:** Barra de progreso por lote y botón de salida explícito
+   - **Selección de Banco:** Visualmente integrada como pantalla de inicio
+
+**IMPACTO EN RENDIMIENTO:**
+
+- Tiempos de carga entre preguntas eliminados
+- Menor carga en Supabase (1 llamada vs 50 llamadas por sesión)
+- UX más fluida y predecible para el usuario
