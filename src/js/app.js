@@ -320,6 +320,49 @@ volverAlDashboard() {
     this.resetStats();
 },
 
+        async login() {
+            this.cargandoAuth = true;
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({
+                    email: this.auth.email,
+                    password: this.auth.password,
+                });
+                if (error) throw error;
+                this.auth.user = data.user;
+                this.vistaActual = 'inicio';
+                await this.cargarBancos();
+                this.showToast('¡Bienvenido de nuevo!');
+            } catch (e) {
+                console.error(e);
+                this.showToast(e.message, 'error');
+            } finally {
+                this.cargandoAuth = false;
+            }
+        },
+
+        async loginAnonimo() {
+            this.cargandoAuth = true;
+            // Simular login anónimo (o usar signInAnonymously si estuviera habilitado en Supabase)
+            // Para este caso, solo pasamos a la vista de inicio sin usuario en auth.user real, 
+            // pero mantenemos el flujo de la app.
+            
+            // Opcional: Si quieres persistencia mínima
+            // this.auth.user = { id: 'anon', email: 'invitado@b787.app' }; 
+            
+            this.vistaActual = 'inicio';
+            await this.cargarBancos();
+            this.showToast('Entrando como invitado...');
+            this.cargandoAuth = false;
+        },
+
+        async logout() {
+            await sb.auth.signOut();
+            this.auth.user = null;
+            this.vistaActual = 'login';
+            this.atas = [];
+            this.showToast('Sesión cerrada');
+        },
+
         // --- LÓGICA DEL QUIZ ---
         recuperarSesion() {
             try {

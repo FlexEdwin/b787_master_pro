@@ -346,3 +346,25 @@ La ejecución se detenía silenciosamente después de `cargarAtas()`, impidiendo
 **RESULTADO:**
 
 - Carga de datos inicial robusta y sin bloqueos.
+
+### [2025-12-17] - FEATURE: Implementación de Login UI (Anti-Softlock) 🔐
+
+**PROBLEMA:**
+
+- Softlock detectado: Usuarios anónimos o sin sesión no podían acceder porque NO existía pantalla de login en el nuevo HTML.
+- La app quedaba en un estado indefinido si `initApp` no encontraba sesión.
+
+**SOLUCIÓN:**
+
+- **Frontend (HTML):** Se creó una sección de Login/Registro con diseño Dark Mode (Slate-800).
+  - Incluye formulario Email/Password.
+  - Botón dedicado para "Acceso Invitado".
+- **Lógica (JS):**
+  - Implementación de `login()` conectada a `sb.auth.signInWithPassword`.
+  - Implementación de `loginAnonimo()` para acceso rápido (bypass de auth).
+  - Redirección explícita: `if (!session) this.vistaActual = 'login'`.
+
+**RESULTADO:**
+
+- Flujo de autenticación completo y funcional.
+- Acceso democratizado (Usuarios registrados vs Invitados).
