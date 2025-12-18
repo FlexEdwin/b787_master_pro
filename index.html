@@ -157,26 +157,20 @@
         <!-- ========================================== -->
         <!-- VISTA 2: DASHBOARD (Configuración)         -->
         <!-- ========================================== -->
-        <section x-show="vistaActual === 'dashboard'" style="display: none;" class="animate-fade-in">
+        <section x-show="vistaActual === 'dashboard'" style="display: none;" class="animate-fade-in max-w-5xl mx-auto w-full">
             <!-- Header Dashboard -->
             <div class="flex items-center justify-between mb-8 border-b border-slate-700 pb-6">
                 <div>
-                    <div class="flex items-center gap-3 mb-1">
-                        <h2 class="text-3xl font-bold text-white">
-                            <span x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre">Banco</span>
-                        </h2>
-                        <button @click="vistaActual = 'inicio'" 
-                                class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-3 py-1 rounded-full transition-colors flex items-center gap-1">
+                    <div class="flex items-center gap-4 mb-2">
+                        <button @click="localStorage.removeItem('app_banco_actual'); localStorage.removeItem('app_vista'); vistaActual = 'inicio'" 
+                                class="text-blue-400 hover:text-white transition flex items-center gap-1 text-sm font-bold bg-slate-800 px-3 py-1 rounded-lg border border-slate-700">
                             <span>← Cambiar Banco</span>
                         </button>
                     </div>
-                    <p class="text-slate-400">Panel de Control de Entrenamiento</p>
-                </div>
-                <div class="text-right hidden sm:block">
-                     <span class="block text-xs font-bold text-slate-500 uppercase">Estado</span>
-                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-400 border border-green-500/20">
-                        Online
-                     </span>
+                    <h2 class="text-3xl font-black text-white">
+                        <span x-text="listaBancos.find(b => b.id === bancoSeleccionado)?.nombre || 'Cargando...'">Banco</span>
+                    </h2>
+                    <p class="text-slate-400">Configura tu sesión de entrenamiento</p>
                 </div>
             </div>
 
@@ -184,47 +178,40 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- 1. General -->
                 <button @click="comenzarQuiz('general')" 
-                        class="relative overflow-hidden group bg-gradient-to-br from-blue-600/20 to-slate-800 border border-blue-500/30 hover:border-blue-400 p-8 rounded-2xl text-left transition-all hover:shadow-lg hover:shadow-blue-900/20">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
-                    </div>
+                        class="relative overflow-hidden group bg-gradient-to-br from-blue-600/20 to-slate-800 border border-blue-500/30 hover:border-blue-400 p-6 rounded-2xl text-left transition-all hover:shadow-lg hover:shadow-blue-900/20">
                     <div class="text-4xl mb-4">📚</div>
                     <h3 class="text-xl font-bold text-white mb-2">Entrenamiento General</h3>
-                    <p class="text-slate-400 text-sm">Genera un set de 50 preguntas aleatorias de todo el banco.</p>
+                    <p class="text-slate-400 text-sm">50 preguntas aleatorias.</p>
                 </button>
 
-                <!-- 2. Capítulos -->
-                <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl relative" x-show="atas.length > 0">
+                <!-- 2. Capítulos (SOLO SI HAY ATAS) -->
+                <div x-show="atas.length > 0" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl relative">
                     <div class="text-4xl mb-4">⚙️</div>
-                    <h3 class="text-xl font-bold text-white mb-4">Por Capítulos (ATA)</h3>
+                    <h3 class="text-xl font-bold text-white mb-4">Por Capítulos</h3>
                     
                     <div class="space-y-3">
-                        <label class="text-xs font-bold text-slate-500 uppercase">Seleccionar Tema</label>
                         <select x-model="ataSeleccionado" 
-                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
-                            <option value="">Seleccionar ATA...</option>
+                                class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-white text-sm outline-none">
+                            <option value="">Seleccionar Tema...</option>
                             <template x-for="ata in atas" :key="ata.id">
                                 <option :value="ata.id" x-text="ata.nombre"></option>
                             </template>
                         </select>
                         <button @click="comenzarQuiz('ata', ataSeleccionado)"
                                 :disabled="!ataSeleccionado"
-                                class="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg transition-all shadow-lg shadow-blue-900/20">
+                                class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold py-2 rounded-lg text-sm">
                             Estudiar Tema
                         </button>
                     </div>
                 </div>
 
                 <!-- 3. Repaso -->
-                <div @click="comenzarQuiz('repaso')" 
-                        class="bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-blue-500/50 transition-colors group relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <svg class="w-24 h-24 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    </div>
+                <button @click="comenzarQuiz('repaso')" 
+                        class="relative overflow-hidden group bg-slate-800 border border-slate-700 hover:border-red-500/50 p-6 rounded-2xl text-left transition-all">
                     <div class="text-4xl mb-4">🚑</div>
-                    <h3 class="text-xl font-bold text-white mb-2">Repaso Inteligente</h3>
-                    <p class="text-slate-400 text-sm">El algoritmo seleccionará tus fallos previos y preguntas "en cuarentena".</p>
-                </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Repaso Fallos</h3>
+                    <p class="text-slate-400 text-sm">Vuelve a intentar tus errores.</p>
+                </button>
             </div>
         </section>
 

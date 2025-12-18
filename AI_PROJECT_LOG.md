@@ -228,5 +228,11 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
 - Eliminados errores de consola por RPC inexistente.
 
 - ✅ **FIX VISUAL (Dashboard Bloqueado):**
+
   - Corregida condición `x-show` en el bloque "En Construcción" (`index.html`).
   - Ahora se restringe estrictamente a `vistaActual === 'quiz'`, evitando que aparezca erróneamente en el Dashboard vacío.
+
+- ✅ **FIX CRÍTICO (Invisible Dashboard):**
+  - Restaurado el bloque HTML completo de la sección Dashboard.
+  - Corregido diseño Grid y depurados botones de navegación internos.
+  - Solucionado el problema donde la selección de banco llevaba a una pantalla vacía.
