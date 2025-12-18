@@ -84,7 +84,8 @@ function app() {
             
             if (session) {
                 console.log("✅ Usuario detectado. Cargando datos...");
-                this.auth.user = session.user;
+                this.session = session; // 🆕 SESSION FIX
+                this.auth.user = session.user; // Redundancia
                 this.cargando = true; // Show spinner while loading initial data
                 try {
                     await this.cargarAtas();
@@ -289,7 +290,7 @@ async cargarAtas() {
             console.error('⚠️ Error no bloqueante cargando ATAs:', error);
         }
         
-        // 3. 🆕 BATCH: Navegamos al dashboard sin cargar preguntas
+        // 3. 🆕 BATCH: Navegamos al dashboard SIEMPRE (Logic Fix)
         this.vistaActual = 'dashboard';
         this.cargando = false;
         console.log('✅ Dashboard listo. Usuario puede elegir modo de estudio.');
@@ -474,7 +475,7 @@ volverAlDashboard() {
 
             // 💾 2. PERSISTENCIA ROBUSTA (Fall-safes)
             try {
-                const uid = this.auth.user?.id;
+                const uid = this.session?.user?.id || this.auth.user?.id; // 🆕 USER UNDEFINED FIX
                 
                 // Intentamos guardar, pero si falla no detenemos el quiz
                 await sb.rpc('guardar_intento', {

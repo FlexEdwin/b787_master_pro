@@ -233,6 +233,17 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
   - Ahora se restringe estrictamente a `vistaActual === 'quiz'`, evitando que aparezca erróneamente en el Dashboard vacío.
 
 - ✅ **FIX CRÍTICO (Invisible Dashboard):**
+
   - Restaurado el bloque HTML completo de la sección Dashboard.
   - Corregido diseño Grid y depurados botones de navegación internos.
   - Solucionado el problema donde la selección de banco llevaba a una pantalla vacía.
+
+- ✅ **FIX LÓGICO (White Screen):**
+
+  - Eliminados condicionales en `seleccionarBanco` que causaban redirección errónea si `preguntas.length === 0`.
+  - Ahora el flujo es lineal y fuerza la vista `dashboard` tras cargar metadatos.
+
+- ✅ **FIX SESIÓN (User Undefined):**
+  - Corregida inicialización de sesión en `initApp` (`this.session = session`).
+  - Implementado fallback robusto para obtener `user_id` en `responder()` (`this.session?.user?.id || this.auth.user?.id`).
+  - Previene fallos en guardar progreso si la sesión se recarga.
