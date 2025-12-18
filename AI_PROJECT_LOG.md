@@ -226,3 +226,7 @@ Se cerró el ciclo de desarrollo con un sprint intensivo de corrección de error
 
 - Experiencia de usuario más robusta y tolerante a fallos de red o recargas accidentales.
 - Eliminados errores de consola por RPC inexistente.
+
+- ✅ **FIX VISUAL (Dashboard Bloqueado):**
+  - Corregida condición `x-show` en el bloque "En Construcción" (`index.html`).
+  - Ahora se restringe estrictamente a `vistaActual === 'quiz'`, evitando que aparezca erróneamente en el Dashboard vacío.

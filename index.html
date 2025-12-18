@@ -140,7 +140,7 @@
         <!-- ========================================== -->
         <!-- VISTA: PRÓXIMAMENTE (Coming Soon)          -->
         <!-- ========================================== -->
-        <section x-show="vistaActual === 'proximamente'" style="display: none;" class="animate-fade-in text-center max-w-lg mx-auto py-20">
+        <section x-show="vistaActual === 'quiz' && !cargando && preguntas.length === 0" style="display: none;" class="animate-fade-in text-center max-w-lg mx-auto py-20">
             <div class="text-6xl mb-6">🚧</div>
             <h2 class="text-3xl font-black text-white mb-4">En Construcción</h2>
             <p class="text-lg text-slate-400 mb-8 leading-relaxed">
