@@ -470,7 +470,6 @@ volverAlDashboard() {
                 await sb.rpc('guardar_intento', {
                     p_pregunta_id: this.preguntaActual.id,
                     p_es_correcta: esCorrecta,
-                    p_banco_id: this.bancoSeleccionado || 'b787',
                     p_modo_estudio: this.modoEstudio,
                     p_user_id: uid 
                 });
